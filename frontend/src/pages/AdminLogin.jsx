@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext.jsx';
 import bisuLogo from '../assets/bisubilar2009.png';
 import { Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
 
