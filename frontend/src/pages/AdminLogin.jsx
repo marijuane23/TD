@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext.jsx';
-import { ShieldCheck, Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
+import bisuLogo from '../assets/bisubilar2009.png';
+import { Lock, User, AlertCircle, ArrowLeft } from 'lucide-react';
 
 export function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -43,11 +43,13 @@ export function AdminLogin() {
           <span>Back to Home</span>
         </Link>
 
-        {/* Brand Shield Header */}
+        {/* Brand Logo Header */}
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center shadow-lg shadow-bisu-blue/20 mb-3">
-            <ShieldCheck className="w-7 h-7" />
-          </div>
+          <img
+            src={bisuLogo}
+            alt="BISU Bilar Official Logo"
+            className="w-20 h-20 object-contain drop-shadow-md mb-3"
+          />
           <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
             Admin Portal
           </h1>

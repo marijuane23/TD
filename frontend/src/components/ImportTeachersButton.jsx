@@ -79,7 +79,7 @@ export function ImportTeachersButton({ onImportSuccess }) {
               </h2>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
-              Upload an <code>.xlsx</code> spreadsheet with columns <code>Name</code>, <code>Department</code>, and optional <code>Photo URL</code>.
+              Upload an <code>.xlsx</code> spreadsheet with columns <code>Name</code>, <code>College</code> (CTECH, CTE, CBM, CFES, COAS, CADS), optional <code>Department</code>, and optional <code>Photo URL</code>.
             </p>
 
             {/* Template Download Prompt */}

@@ -9,6 +9,7 @@ import ImportTeachersButton from '../components/ImportTeachersButton.jsx';
 import ExportTeachersButton from '../components/ExportTeachersButton.jsx';
 import AdminTimelineEntryList from '../components/AdminTimelineEntryList.jsx';
 import ConfirmDialog from '../components/ConfirmDialog.jsx';
+import bisuLogo from '../assets/bisubilar2009.png';
 import {
   Users,
   MessageSquare,
@@ -177,10 +178,14 @@ export function AdminDashboard() {
             title={isSidebarCollapsed ? 'Click Avatar to expand sidebar' : 'Click Avatar to collapse sidebar'}
           >
             <div className="flex items-center gap-3 min-w-0">
-              {/* Admin Avatar */}
-              <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center shadow-md shadow-bisu-blue/20 shrink-0 group-hover:scale-105 transition-transform">
-                <ShieldCheck className="w-6 h-6" />
-                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900" />
+              {/* Admin Avatar with Official BISU Logo */}
+              <div className="relative w-11 h-11 shrink-0 group-hover:scale-105 transition-transform flex items-center justify-center">
+                <img
+                  src={bisuLogo}
+                  alt="BISU Bilar"
+                  className="w-11 h-11 object-contain drop-shadow"
+                />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 ring-2 ring-white dark:ring-slate-900 shadow-sm" />
               </div>
 
               {/* Admin Name & Role */}
@@ -332,9 +337,7 @@ export function AdminDashboard() {
               )}
             </button>
 
-            <span className="hidden md:inline-flex text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-bisu-gold/15 text-bisu-gold border border-bisu-gold/30">
-              Oct 7, 2026 Celebration
-            </span>
+
             <div className="hidden sm:flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold px-2 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/40">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <span>Session Live</span>
@@ -474,9 +477,9 @@ export function AdminDashboard() {
                       />
                     </div>
 
-                    {/* View Live Public Wall Button (Navigates directly to public wall section) */}
+                    {/* View Live Public Wall Button */}
                     <a
-                      href="/#public-wall"
+                      href="/wall"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-bisu-blue-700 hover:bg-bisu-blue-800 shadow-sm shadow-bisu-blue/20 hover:shadow transition-all shrink-0"
