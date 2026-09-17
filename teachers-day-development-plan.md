@@ -159,13 +159,13 @@ CREATE TABLE admins (
 
 **Connection details (Hostinger MySQL):**
 
-| Field    | Value                 |
-| -------- | --------------------- |
-| Host     | `194.59.164.40`     |
-| Port     | `3306`              |
-| Database | `u463580331_td_db`  |
-| Username | `u463580331_td`     |
-| Password | `Teachersd4y@2026!` |
+| Field    | Value |
+| -------- | ----- |
+| Host     | ----- |
+| Port     | ----- |
+| Database | ----- |
+| Username | ----- |
+| Password | ----- |
 
 > ⚠️ These are live credentials. Keep this file out of version control (or move this table to `.env` / Render's environment variable settings once the backend is scaffolded) — don't let it end up in the `TD-Server/backend` repo.
 
