@@ -394,3 +394,247 @@
     transform: none !important;
   }
 }
+
+/* 3D Greetings Globe Stage & Floating Cards */
+.stage-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1300px;
+  margin: 0 auto clamp(1rem, 3vh, 2rem);
+  height: clamp(520px, 70vh, 780px);
+  border: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  overflow: visible;
+  cursor: grab;
+  touch-action: none;
+  box-shadow: none;
+}
+
+.stage-wrap.dragging {
+  cursor: grabbing;
+}
+
+.stage-wrap::before {
+  display: none;
+}
+
+.watermark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  pointer-events: none;
+  text-align: center;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.2);
+  text-shadow: 0 0 35px rgba(47, 107, 255, 0.25), 0 0 70px rgba(255, 176, 32, 0.15);
+  letter-spacing: 0.02em;
+  line-height: 1.05;
+  white-space: nowrap;
+  user-select: none;
+}
+
+[data-theme='light'] .watermark {
+  color: rgba(15, 23, 42, 0.18);
+  text-shadow: 0 0 30px rgba(37, 99, 235, 0.18);
+}
+
+.watermark .l1 {
+  display: block;
+  font-size: clamp(2.8rem, 7.5vw, 5.5rem);
+  letter-spacing: -0.02em;
+}
+
+.watermark .l2 {
+  display: block;
+  font-size: clamp(0.95rem, 2.2vw, 1.5rem);
+  letter-spacing: 0.26em;
+  margin-top: 0.35rem;
+  color: #ffb020;
+  opacity: 0.55;
+}
+
+#core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 214, 121, 0.95), transparent 70%);
+  box-shadow: 0 0 70px 32px rgba(122, 162, 255, 0.25);
+  pointer-events: none;
+  z-index: 2;
+}
+
+#stage {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+}
+
+.gcard {
+  position: absolute;
+  left: 0;
+  top: 0;
+  will-change: transform, opacity;
+  width: 220px;
+  padding: 0.85rem 0.95rem 0.75rem;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  transition: box-shadow 0.25s, border-color 0.2s;
+  pointer-events: auto;
+  user-select: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.gcard:hover {
+  box-shadow: 0 18px 40px -14px var(--card-glow, #2f6bff), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.gcard.dragging {
+  cursor: grabbing !important;
+  box-shadow: 0 24px 60px -10px rgba(255, 176, 32, 0.65), 0 0 0 2px #ffb020, inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  border-color: #ffb020 !important;
+  filter: brightness(1.2) !important;
+  opacity: 1 !important;
+  z-index: 10000 !important;
+}
+
+.gcard.pop {
+  animation: pop 0.5s cubic-bezier(0.2, 1.3, 0.3, 1);
+}
+
+@keyframes pop {
+  0% { filter: brightness(1); }
+  40% { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
+
+.gc-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.45rem;
+}
+
+.gc-av {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #0d1435;
+  font-family: "Bricolage Grotesque", sans-serif;
+}
+
+.gc-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #f3f6ff;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gc-msg {
+  font-size: 0.82rem;
+  line-height: 1.42;
+  color: #f3f6ff;
+  opacity: 0.92;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.gc-bot {
+  margin-top: 0.5rem;
+  font-size: 0.68rem;
+  color: #a9b3d9;
+  display: flex;
+  justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+  .gcard {
+    width: 175px;
+    padding: 0.7rem 0.8rem 0.6rem;
+  }
+  .gc-msg {
+    font-size: 0.76rem;
+  }
+}
+
+.globe-toolbar {
+  position: relative;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  width: min(1200px, 94%);
+  margin: 0 auto 0.9rem;
+}
+
+.globe-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+}
+
+.globe-pill b {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.globe-zoomctl {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.globe-zbtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: transform 0.25s cubic-bezier(0.2, 1.3, 0.4, 1), background 0.25s;
+}
+
+.globe-zbtn:hover {
+  transform: scale(1.1);
+  background: var(--glass-border-highlight);
+}
+
+.globe-zbtn:active {
+  transform: scale(0.92);
+}
+
