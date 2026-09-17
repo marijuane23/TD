@@ -36,7 +36,7 @@ export function Header() {
           <div>
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-lg sm:text-xl tracking-tight text-bisu-blue-900 dark:text-white font-sans">
-                BISU Bilar
+                BISU Bilar Campus
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
