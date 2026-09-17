@@ -47,12 +47,13 @@ export function Header() {
             alt="BISU Bilar Official Logo"
             className="w-10 h-10 object-contain drop-shadow-sm group-hover:scale-105 transition-transform duration-200"
           />
-          <div className="flex flex-col">
-            <span className="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white font-sans">
-              BISU Bilar
-            </span>
-            {/* Hidden on narrow screens */}
-            <p className="hidden sm:block text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-bisu-blue-900 dark:text-white font-sans">
+                BISU Bilar Campus
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
               Teacher's Day Celebration
             </p>
           </div>
