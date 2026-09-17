@@ -2,6 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import PublicLayout from './layouts/PublicLayout.jsx';
 import Home from './pages/Home.jsx';
+import OpenWall from './pages/OpenWall.jsx';
 import TeacherDirectory from './pages/TeacherDirectory.jsx';
 import TeacherTimeline from './pages/TeacherTimeline.jsx';
 import AdminLogin from './pages/AdminLogin.jsx';
@@ -14,6 +15,8 @@ export function App() {
       {/* Public Pages wrapped with shared Header */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
+        <Route path="/wall" element={<OpenWall />} />
+        <Route path="/open-wall" element={<OpenWall />} />
         <Route path="/teachers" element={<TeacherDirectory />} />
         <Route path="/teachers/:slug" element={<TeacherTimeline />} />
         <Route path="/login" element={<AdminLogin />} />

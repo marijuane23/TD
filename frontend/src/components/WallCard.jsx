@@ -153,7 +153,7 @@ export function WallCard({ greeting, canvasWidth = 4200, canvasHeight = 3000 }) 
       </p>
 
       {/* Footer / Date */}
-      <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400 dark:text-slate-500 pt-2 border-t border-slate-200/50 dark:border-slate-800/50 pointer-events-none">
+      <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/50 pointer-events-none">
         <span className="flex items-center gap-1">
           <span>Public Wall</span>
           {isDragging && <span className="text-bisu-gold font-bold">• Moving</span>}

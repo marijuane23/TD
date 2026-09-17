@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { useTheme } from '../context/ThemeContext.jsx';
 import api from '../api/client.js';
 import WallCard from './WallCard.jsx';
 import WallSubmissionPanel from './WallSubmissionPanel.jsx';
@@ -9,6 +10,7 @@ const CANVAS_WIDTH = 4200;
 const CANVAS_HEIGHT = 3000;
 
 export function WallCanvas() {
+  const { theme } = useTheme();
   const [greetings, setGreetings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -77,9 +79,12 @@ export function WallCanvas() {
     setGreetings(prev => [newGreeting, ...prev]);
   };
 
-  // Shared infinite dotted grid style
+  // Dynamic infinite dotted grid style adapted to light / dark theme
   const dotGridStyle = {
-    backgroundImage: 'radial-gradient(rgba(148, 163, 184, 0.28) 1.5px, transparent 1.5px)',
+    backgroundImage:
+      theme === 'dark'
+        ? 'radial-gradient(rgba(148, 163, 184, 0.25) 1.5px, transparent 1.5px)'
+        : 'radial-gradient(rgba(100, 116, 139, 0.28) 1.5px, transparent 1.5px)',
     backgroundSize: '28px 28px',
   };
 
@@ -87,23 +92,23 @@ export function WallCanvas() {
     <div
       ref={containerRef}
       style={dotGridStyle}
-      className="relative w-full h-[560px] sm:h-[680px] lg:h-[780px] bg-slate-900 dark:bg-slate-950 border-y border-slate-800 overflow-hidden select-none"
+      className="relative w-full h-[560px] sm:h-[680px] lg:h-[780px] bg-slate-100 dark:bg-slate-950 border-y border-slate-200 dark:border-slate-800 overflow-hidden select-none transition-colors duration-200"
     >
       {/* Canvas Top Bar HUD */}
       <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-2 pointer-events-none">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg text-xs font-semibold text-slate-200">
-          <Move className="w-3.5 h-3.5 text-bisu-gold" />
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 shadow-md text-xs font-semibold text-slate-700 dark:text-slate-200">
+          <Move className="w-3.5 h-3.5 text-bisu-blue-600 dark:text-bisu-gold" />
           <span className="hidden sm:inline">Infinite Public Wall ({greetings.length} greetings • Drag greetings to move)</span>
           <span className="sm:hidden font-bold">Wall ({greetings.length}) • Drag to move</span>
         </div>
       </div>
 
       {/* Floating Canvas Controls HUD */}
-      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-slate-900/90 backdrop-blur-md border border-slate-700/80 shadow-lg">
+      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center gap-1 sm:gap-1.5 p-1 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-700/80 shadow-md">
         <button
           onClick={() => transformRef.current?.zoomIn()}
           aria-label="Zoom in"
-          className="p-1.5 sm:p-2 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-bisu-gold transition-colors"
+          className="p-1.5 sm:p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-bisu-blue-600 dark:hover:text-bisu-gold transition-colors"
           title="Zoom In"
         >
           <ZoomIn className="w-4 h-4" />
@@ -111,7 +116,7 @@ export function WallCanvas() {
         <button
           onClick={() => transformRef.current?.zoomOut()}
           aria-label="Zoom out"
-          className="p-1.5 sm:p-2 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-bisu-gold transition-colors"
+          className="p-1.5 sm:p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-bisu-blue-600 dark:hover:text-bisu-gold transition-colors"
           title="Zoom Out"
         >
           <ZoomOut className="w-4 h-4" />
@@ -119,7 +124,7 @@ export function WallCanvas() {
         <button
           onClick={() => transformRef.current?.resetTransform()}
           aria-label="Reset view"
-          className="p-1.5 sm:p-2 rounded-lg text-slate-200 hover:bg-slate-800 hover:text-bisu-gold transition-colors"
+          className="p-1.5 sm:p-2 rounded-lg text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-bisu-blue-600 dark:hover:text-bisu-gold transition-colors"
           title="Reset Center"
         >
           <RotateCcw className="w-4 h-4" />
@@ -132,7 +137,7 @@ export function WallCanvas() {
           <button
             onClick={loadMoreGreetings}
             disabled={loadingMore}
-            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs font-semibold bg-slate-900/95 text-slate-200 border border-slate-700 shadow-xl hover:bg-slate-800 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full text-xs font-semibold bg-white/95 dark:bg-slate-900/95 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 shadow-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-all disabled:opacity-50"
           >
             {loadingMore ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
             <span>Load More</span>
@@ -169,11 +174,11 @@ export function WallCanvas() {
             className="relative bg-transparent"
           >
             {/* Center Board Watermark */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none opacity-15">
-              <h2 className="text-8xl sm:text-9xl font-black text-slate-400 tracking-tighter">
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none opacity-20 dark:opacity-15 select-none">
+              <h2 className="text-8xl sm:text-9xl font-black text-slate-300 dark:text-slate-600 tracking-tighter">
                 BISU BILAR
               </h2>
-              <p className="text-3xl font-extrabold uppercase tracking-widest text-slate-400 mt-2">
+              <p className="text-3xl font-extrabold uppercase tracking-widest text-slate-400 dark:text-slate-600 mt-2">
                 Teacher's Day Public Wall
               </p>
             </div>
@@ -189,8 +194,8 @@ export function WallCanvas() {
             ))}
 
             {loading && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 p-4 rounded-xl bg-slate-900/90 border border-slate-700 shadow-2xl text-slate-200">
-                <Loader2 className="w-5 h-5 animate-spin text-bisu-gold" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 p-4 rounded-xl bg-white/90 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700 shadow-2xl text-slate-800 dark:text-slate-200">
+                <Loader2 className="w-5 h-5 animate-spin text-bisu-blue-600 dark:text-bisu-gold" />
                 <span className="text-sm font-semibold">Loading Public Wall...</span>
               </div>
             )}
