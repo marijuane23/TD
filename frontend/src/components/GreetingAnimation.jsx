@@ -1,122 +1,122 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import gsap from 'gsap';
-import confetti from 'canvas-confetti';
-import { Sparkles, MessageSquare, Users } from 'lucide-react';
+import { MessageSquare, Users } from 'lucide-react';
+import { createRipple } from '../utils/ripple.js';
 
 export function GreetingAnimation() {
-  const containerRef = useRef(null);
-  const headlineRef = useRef(null);
-  const subtitleRef = useRef(null);
-  const badgeRef = useRef(null);
-  const ctaRef = useRef(null);
+  const cardRef = useRef(null);
+  const [tilt, setTilt] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      // Staggered entrance animation
-      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  // 3D desktop cursor tilt (perspective 1200px, rotateX/Y up to ±5deg)
+  const handleMouseMove = (e) => {
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!window.matchMedia('(pointer: fine)').matches) return;
 
-      tl.from(badgeRef.current, {
-        y: -25,
-        opacity: 0,
-        duration: 0.8,
-      })
-      .from(
-        headlineRef.current,
-        {
-          y: 35,
-          opacity: 0,
-          duration: 1,
-          scale: 0.98,
-        },
-        '-=0.5'
-      )
-      .from(
-        subtitleRef.current,
-        {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-        },
-        '-=0.6'
-      )
-      .from(
-        ctaRef.current,
-        {
-          y: 20,
-          opacity: 0,
-          duration: 0.8,
-        },
-        '-=0.5'
-      );
-    }, containerRef);
+    const card = cardRef.current;
+    if (!card) return;
 
-    return () => ctx.revert();
-  }, []);
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
 
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 120,
-      spread: 90,
-      origin: { y: 0.6 },
-      colors: ['#0d234d', '#f59e0b', '#10b981', '#ef4444', '#3b82f6'],
-    });
+    const rotateX = Math.max(-5, Math.min(5, ((centerY - y) / centerY) * 5));
+    const rotateY = Math.max(-5, Math.min(5, ((x - centerX) / centerX) * 5));
+
+    setTilt({ x: rotateX, y: rotateY });
   };
 
-  return (
-    <section
-      ref={containerRef}
-      className="relative overflow-hidden min-h-[calc(100vh-4rem)] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8 text-center"
-    >
-      {/* Background Decorative Ambient Blurs */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 sm:w-[680px] h-72 sm:h-[420px] bg-gradient-to-tr from-bisu-blue-600/20 via-bisu-gold/15 to-bisu-green/15 blur-3xl pointer-events-none rounded-full -z-10" />
+  const handleMouseLeave = () => {
+    setTilt({ x: 0, y: 0 });
+  };
 
-      <div className="max-w-4xl mx-auto flex flex-col items-center">
-        {/* Celebration Badge */}
-        <div
-          ref={badgeRef}
-          onClick={triggerConfetti}
-          className="cursor-pointer inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-bisu-blue-50 to-bisu-gold/10 dark:from-bisu-blue-950/60 dark:to-bisu-gold/10 border border-bisu-gold/30 text-bisu-blue-900 dark:text-bisu-gold text-xs sm:text-sm font-semibold tracking-wide shadow-sm hover:scale-105 transition-transform duration-200 mb-6"
-          title="Click for celebration confetti!"
-        >
-          <Sparkles className="w-4 h-4 text-bisu-gold animate-pulse" />
-          <span>BISU Bilar Celebration — October 7, 2026</span>
+  const line1 = 'Happy';
+  const line2 = "Teacher's Day!";
+
+  return (
+    <section className="relative min-h-[calc(100vh-8rem)] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+      {/* Open Floating Hero Container with Subtle 3D Tilt */}
+      <div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          transform: `perspective(1200px) rotateX(${tilt.x.toFixed(2)}deg) rotateY(${tilt.y.toFixed(2)}deg)`,
+          transition: 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)',
+        }}
+        className="max-w-4xl w-full mx-auto flex flex-col items-center text-center z-10"
+      >
+        {/* Celebration Badge with Pulsing Gold Dot (Expanding Ring Shadow) */}
+        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-celebrate-gold/30 bg-celebrate-gold/10 text-xs sm:text-sm font-semibold tracking-wide text-amber-300 dark:text-amber-200 mb-8 shadow-sm">
+          <span className="pulsing-gold-dot" aria-hidden="true" />
+          <span>BISU Bilar Teachers Day Celebration 2K26</span>
         </div>
 
-        {/* Hero Title */}
+        {/* Hero Title: Split into two lines, each line split into individual character spans */}
         <h1
-          ref={headlineRef}
-          className="text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight text-slate-900 dark:text-white leading-[1.1] mb-6"
+          aria-label="Happy Teacher's Day!"
+          className="font-headline tracking-tight text-slate-900 dark:text-white mb-6 select-none"
         >
-          Happy{' '}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-bisu-blue-700 via-bisu-blue-500 to-bisu-gold dark:from-bisu-blue-400 dark:via-bisu-gold dark:to-emerald-400">
-            Teacher's Day!
+          {/* Line 1: "Happy" */}
+          <span className="headline-line block overflow-hidden" aria-hidden="true">
+            {line1.split('').map((char, index) => (
+              <span
+                key={`line1-${index}`}
+                className="headline-char"
+                style={{
+                  '--char-index': index,
+                  '--char-offset': `${index * -20}px`,
+                }}
+              >
+                {char}
+              </span>
+            ))}
+          </span>
+
+          {/* Line 2: "Teacher's Day!" */}
+          <span className="headline-line block overflow-hidden" aria-hidden="true">
+            {line2.split('').map((char, index) => {
+              const globalIndex = line1.length + index;
+              return (
+                <span
+                  key={`line2-${index}`}
+                  className="headline-char"
+                  style={{
+                    '--char-index': globalIndex,
+                    '--char-offset': `${globalIndex * -20}px`,
+                  }}
+                >
+                  {char === ' ' ? '\u00A0' : char}
+                </span>
+              );
+            })}
           </span>
         </h1>
 
-        {/* Subtitle */}
-        <p
-          ref={subtitleRef}
-          className="text-base sm:text-xl text-slate-600 dark:text-slate-300 max-w-2xl font-normal leading-relaxed mb-8"
-        >
-          To the inspiring mentors, professors, and instructors of Bohol Island State University (Bilar Campus) — thank you for shaping our minds, guiding our paths, and nurturing our futures.
+        {/* Subheading with Staggered Fade Up */}
+        <p className="fade-up-subheading text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl font-light leading-relaxed mb-10">
+          To the inspiring mentors, professors, instructors and staff of Bohol Island State University (Bilar Campus) — thank you for shaping our minds, guiding our paths, and nurturing our futures.
         </p>
 
-        {/* Primary Action Buttons */}
-        <div ref={ctaRef} className="flex flex-wrap items-center justify-center gap-3.5">
+        {/* Two CTAs: Primary & Secondary with Lift, Scale & Ripple Motion */}
+        <div className="fade-up-cta flex flex-wrap items-center justify-center gap-4 w-full sm:w-auto">
           <Link
             to="/wall"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-slate-950 bg-gradient-to-r from-bisu-gold to-amber-400 hover:from-amber-400 hover:to-bisu-gold shadow-lg shadow-bisu-gold/25 hover:scale-105 active:scale-95 transition-all duration-200"
+            onClick={createRipple}
+            className="btn-primary-celebrate flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl font-bold text-sm sm:text-base w-full sm:w-auto"
           >
-            <MessageSquare className="w-4 h-4" />
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 pointer-events-none" />
             <span>Open Public Wall</span>
           </Link>
 
           <Link
             to="/teachers"
-            className="flex items-center gap-2 px-6 py-3 rounded-2xl font-bold text-sm text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-900/80 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 shadow-md hover:scale-105 active:scale-95 transition-all duration-200"
+            onClick={createRipple}
+            className="btn-secondary-glass flex items-center justify-center gap-2.5 px-8 py-3.5 rounded-2xl font-bold text-sm sm:text-base w-full sm:w-auto"
           >
-            <Users className="w-4 h-4 text-bisu-blue-600 dark:text-bisu-blue-400" />
+            <Users className="w-4 h-4 sm:w-5 sm:h-5 text-celebrate-blue pointer-events-none" />
             <span>Browse Teachers</span>
           </Link>
         </div>

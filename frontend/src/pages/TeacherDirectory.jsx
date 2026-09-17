@@ -20,8 +20,8 @@ export function TeacherDirectory() {
         </p>
       </div>
 
-      {/* 4x3 Grid with Search, Sort, and Pagination */}
-      <TeacherGrid fetchTeachersFn={api.getTeachers} />
+      {/* 4x3 Grid with Search, College Selection (Default: CTECH), Sort, and Pagination */}
+      <TeacherGrid fetchTeachersFn={api.getTeachers} defaultCollege="CTECH" />
     </div>
   );
 }
