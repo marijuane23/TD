@@ -59,8 +59,10 @@ export const api = {
   },
 
   // Public Teacher APIs
-  async getTeachers({ q = '', sort = 'name_asc', page = 1, limit = 12 } = {}) {
-    const params = new URLSearchParams({ q, sort, page: String(page), limit: String(limit) });
+  async getTeachers({ q = '', college = '', sort = 'name_asc', page = 1, limit = 12 } = {}) {
+    const query = { q, sort, page: String(page), limit: String(limit) };
+    if (college && college !== 'all') query.college = college;
+    const params = new URLSearchParams(query);
     return request(`/teachers?${params.toString()}`);
   },
 
@@ -138,8 +140,10 @@ export const api = {
     });
   },
 
-  async getAdminTeachers({ q = '', sort = 'name_asc', page = 1, limit = 12 } = {}) {
-    const params = new URLSearchParams({ q, sort, page: String(page), limit: String(limit) });
+  async getAdminTeachers({ q = '', college = '', sort = 'name_asc', page = 1, limit = 12 } = {}) {
+    const query = { q, sort, page: String(page), limit: String(limit) };
+    if (college && college !== 'all') query.college = college;
+    const params = new URLSearchParams(query);
     return request(`/admin/teachers?${params.toString()}`);
   },
 

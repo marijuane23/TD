@@ -7,7 +7,7 @@ import { Heart } from 'lucide-react';
 
 export function PublicLayout() {
   return (
-    <div className="relative min-h-screen flex flex-col overflow-x-hidden selection:bg-celebrate-gold/30 selection:text-celebrate-gold">
+    <div className="relative min-h-screen flex flex-col overflow-x-clip selection:bg-celebrate-gold/30 selection:text-celebrate-gold">
       {/* Fixed celebration background: 4 drifting sine blobs, SVG noise, ambient glowing particles */}
       <CelebrationBackground />
 
@@ -24,15 +24,21 @@ export function PublicLayout() {
 
       {/* Frosted Glass Footer */}
       <footer className="relative z-10 frosted-footer py-6 mt-auto">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
-          <div className="flex items-center flex-wrap justify-center sm:justify-start gap-2">
-            <span>Bohol Island State University — Bilar Campus</span>
-            <span className="text-slate-400 dark:text-slate-600">•</span>
-            <span className="font-bold text-celebrate-gold">October 7, 2026</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:grid md:grid-cols-3 items-center gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
+          {/* Left: Computing Society x SaPaSu */}
+          <div className="text-center md:text-left font-semibold text-slate-700 dark:text-slate-300">
+            Computing Society x SaPaSu
           </div>
-          <div className="flex items-center gap-2">
+
+          {/* Center: Bohol Island State University — Bilar Campus */}
+          <div className="text-center">
+            Bohol Island State University — Bilar Campus
+          </div>
+
+          {/* Right: Honoring our mentors with gratitude */}
+          <div className="flex items-center justify-center md:justify-end gap-2 text-center md:text-right">
             <span>Honoring our mentors with gratitude</span>
-            <Heart className="w-4 h-4 text-celebrate-rose fill-celebrate-rose heartbeat-icon" />
+            <Heart className="w-4 h-4 text-celebrate-rose fill-celebrate-rose heartbeat-icon shrink-0" />
           </div>
         </div>
       </footer>

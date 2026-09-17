@@ -110,7 +110,7 @@ export function TimelineSubmissionForm({ teacherSlug, teacherName, onMessageAdde
   };
 
   return (
-    <div className="glass-card rounded-2xl p-6 sm:p-8">
+    <div className="glass-card rounded-2xl p-6 sm:p-8 border border-slate-300/60 dark:border-slate-700/60">
       <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
         Post a Tribute for {teacherName}
       </h3>

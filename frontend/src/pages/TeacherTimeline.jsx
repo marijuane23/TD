@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import QRCode from 'qrcode';
 import api, { API_BASE_URL } from '../api/client.js';
 import TimelineEntryList from '../components/TimelineEntryList.jsx';
 import TimelineSubmissionForm from '../components/TimelineSubmissionForm.jsx';
@@ -16,6 +17,12 @@ import {
   Film,
   ArrowUpDown,
   Filter,
+  QrCode,
+  Download,
+  Copy,
+  Check,
+  X,
+  Sparkles,
 } from 'lucide-react';
 
 export function TeacherTimeline() {
@@ -28,9 +35,216 @@ export function TeacherTimeline() {
   // Profile picture modal state
   const [isEditPhotoOpen, setIsEditPhotoOpen] = useState(false);
 
+  // QR Code States
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
+
   // Timeline filtering & sorting states
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'messages' | 'photos' | 'videos'
   const [sortBy, setSortBy] = useState('newest'); // 'newest' | 'oldest' | 'photos_first' | 'videos_first' | 'messages_first'
+
+  // Generate QR Code data URL whenever teacher slug is available
+  useEffect(() => {
+    if (!teacher?.slug) return;
+    const timelineUrl = `${window.location.origin}/teachers/${teacher.slug}`;
+    QRCode.toDataURL(timelineUrl, {
+      width: 600,
+      margin: 2,
+      errorCorrectionLevel: 'H',
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff',
+      },
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error('Failed to generate QR code:', err));
+  }, [teacher?.slug]);
+
+  // Generate a commemorative keepsake card on an offscreen canvas
+  const generateKeepsakeCard = async (teacherObj, qrImgSrc) => {
+    return new Promise((resolve) => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = 800;
+        canvas.height = 1000;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(null);
+          return;
+        }
+
+        // Deep Navy / Midnight Gradient Background
+        const bgGrad = ctx.createLinearGradient(0, 0, 800, 1000);
+        bgGrad.addColorStop(0, '#060d1f');
+        bgGrad.addColorStop(0.5, '#0b1633');
+        bgGrad.addColorStop(1, '#070f24');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 800, 1000);
+
+        // Gold outer border frame
+        ctx.strokeStyle = '#eab308';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(24, 24, 752, 952);
+
+        // Subtle inner border
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(34, 34, 732, 932);
+
+        // Corner accents
+        const cSize = 22;
+        ctx.fillStyle = '#eab308';
+        // TL
+        ctx.fillRect(24, 24, cSize, 4);
+        ctx.fillRect(24, 24, 4, cSize);
+        // TR
+        ctx.fillRect(800 - 24 - cSize, 24, cSize, 4);
+        ctx.fillRect(800 - 24 - 4, 24, 4, cSize);
+        // BL
+        ctx.fillRect(24, 1000 - 24 - 4, cSize, 4);
+        ctx.fillRect(24, 1000 - 24 - cSize, 4, cSize);
+        // BR
+        ctx.fillRect(800 - 24 - cSize, 1000 - 24 - 4, cSize, 4);
+        ctx.fillRect(800 - 24 - 4, 1000 - 24 - cSize, 4, cSize);
+
+        // University Header
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 20px "Segoe UI", Roboto, system-ui, sans-serif';
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText('BOHOL ISLAND STATE UNIVERSITY — BILAR CAMPUS', 400, 80);
+
+        // Event Ribbon
+        ctx.font = 'bold 15px "Segoe UI", Roboto, system-ui, sans-serif';
+        ctx.fillStyle = '#eab308';
+        ctx.fillText("TEACHER'S DAY CELEBRATION 2026", 400, 112);
+
+        // Subtle divider
+        ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(160, 135);
+        ctx.lineTo(640, 135);
+        ctx.stroke();
+
+        // Teacher's Name
+        ctx.fillStyle = '#ffffff';
+        const name = teacherObj.name || 'Honored Teacher';
+        if (name.length > 28) {
+          ctx.font = 'bold 30px "Segoe UI", Roboto, system-ui, sans-serif';
+        } else {
+          ctx.font = 'bold 36px "Segoe UI", Roboto, system-ui, sans-serif';
+        }
+        ctx.fillText(name, 400, 190);
+
+        // College & Department
+        ctx.font = '600 17px "Segoe UI", Roboto, system-ui, sans-serif';
+        ctx.fillStyle = '#cbd5e1';
+        let dept = '';
+        if (teacherObj.college_name && teacherObj.department) {
+          dept = `${teacherObj.college_name} • ${teacherObj.department}`;
+        } else {
+          dept = teacherObj.college_name || teacherObj.department || 'Faculty Mentor';
+        }
+        ctx.fillText(dept, 400, 224);
+
+        // Load QR Code Image
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+          // White card background for high-contrast QR
+          const qrBoxSize = 510;
+          const qrBoxX = (800 - qrBoxSize) / 2;
+          const qrBoxY = 260;
+          const radius = 24;
+
+          ctx.save();
+          ctx.fillStyle = '#ffffff';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.4)';
+          ctx.shadowBlur = 24;
+          ctx.shadowOffsetY = 10;
+
+          // Draw rounded rect
+          ctx.beginPath();
+          ctx.moveTo(qrBoxX + radius, qrBoxY);
+          ctx.lineTo(qrBoxX + qrBoxSize - radius, qrBoxY);
+          ctx.quadraticCurveTo(qrBoxX + qrBoxSize, qrBoxY, qrBoxX + qrBoxSize, qrBoxY + radius);
+          ctx.lineTo(qrBoxX + qrBoxSize, qrBoxY + qrBoxSize - radius);
+          ctx.quadraticCurveTo(qrBoxX + qrBoxSize, qrBoxY + qrBoxSize, qrBoxX + qrBoxSize - radius, qrBoxY + qrBoxSize);
+          ctx.lineTo(qrBoxX + radius, qrBoxY + qrBoxSize);
+          ctx.quadraticCurveTo(qrBoxX, qrBoxY + qrBoxSize, qrBoxX, qrBoxY + qrBoxSize - radius);
+          ctx.lineTo(qrBoxX, qrBoxY + radius);
+          ctx.quadraticCurveTo(qrBoxX, qrBoxY, qrBoxX + radius, qrBoxY);
+          ctx.closePath();
+          ctx.fill();
+          ctx.restore();
+
+          // Draw QR Image
+          const pad = 24;
+          ctx.drawImage(img, qrBoxX + pad, qrBoxY + pad, qrBoxSize - pad * 2, qrBoxSize - pad * 2);
+
+          // Prompt text
+          ctx.font = 'bold 22px "Segoe UI", Roboto, system-ui, sans-serif';
+          ctx.fillStyle = '#fbbf24';
+          ctx.fillText('Scan with camera to view your timeline tributes', 400, 830);
+
+          ctx.font = '15px "Segoe UI", Roboto, system-ui, sans-serif';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText('Expressing our deepest gratitude for inspiring and mentoring us.', 400, 865);
+
+          // Footer
+          ctx.font = '600 13px "Segoe UI", Roboto, system-ui, sans-serif';
+          ctx.fillStyle = '#64748b';
+          ctx.fillText('Honoring our mentors with gratitude • Computing Society x SaPaSu', 400, 940);
+
+          resolve(canvas.toDataURL('image/png'));
+        };
+        img.onerror = () => resolve(null);
+        img.src = qrImgSrc;
+      } catch (err) {
+        console.error('Error drawing keepsake card:', err);
+        resolve(null);
+      }
+    });
+  };
+
+  const handleDownloadQr = async (pureQrOnly = false) => {
+    if (!qrDataUrl || !teacher) return;
+    setIsDownloading(true);
+    try {
+      const cleanName = (teacher.name || 'Teacher').replace(/[^a-zA-Z0-9_-]/g, '_');
+      let finalDataUrl = qrDataUrl;
+      let filename = `${cleanName}_Timeline_QR.png`;
+
+      if (!pureQrOnly) {
+        const keepsakeUrl = await generateKeepsakeCard(teacher, qrDataUrl);
+        if (keepsakeUrl) {
+          finalDataUrl = keepsakeUrl;
+          filename = `${cleanName}_Timeline_Keepsake_QR.png`;
+        }
+      }
+
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = finalDataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Download QR failed:', err);
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  const handleCopyLink = () => {
+    if (!teacher?.slug) return;
+    const url = `${window.location.origin}/teachers/${teacher.slug}`;
+    navigator.clipboard?.writeText(url);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -196,91 +410,142 @@ export function TeacherTimeline() {
       </Link>
 
       {/* Teacher Profile Header Card */}
-      <div className="glass-card rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6 relative overflow-hidden">
-        {/* Interactive Avatar with Edit/Add Photo Button */}
-        <div className="relative group shrink-0">
-          <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center text-3xl font-black border-2 border-bisu-gold/60 shadow-lg overflow-hidden relative">
-            {teacher.photo_url ? (
+      <div className="glass-card rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-center md:items-center justify-between gap-6 relative overflow-hidden border border-slate-300/60 dark:border-slate-700/60">
+        {/* Left Side: Teacher Photo & Info */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 flex-1 min-w-0 w-full">
+          {/* Interactive Avatar with Edit/Add Photo Button */}
+          <div className="relative group shrink-0">
+            <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center text-3xl font-black border-2 border-bisu-gold/60 shadow-lg overflow-hidden relative">
+              {teacher.photo_url ? (
+                <img
+                  src={teacher.photo_url}
+                  alt={teacher.name}
+                  className="w-full h-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                />
+              ) : (
+                getInitials(teacher.name)
+              )}
+
+              {/* Hover overlay indicator */}
+              <div
+                onClick={() => setIsEditPhotoOpen(true)}
+                className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold cursor-pointer backdrop-blur-[1px]"
+              >
+                <Camera className="w-5 h-5 mb-0.5 text-bisu-gold" />
+                <span>{teacher.photo_url ? 'Change' : 'Add Photo'}</span>
+              </div>
+            </div>
+
+            {/* Persistent Floating Camera Badge */}
+            <button
+              type="button"
+              onClick={() => setIsEditPhotoOpen(true)}
+              title={teacher.photo_url ? 'Change profile picture' : 'Add profile picture'}
+              className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-bisu-gold text-slate-950 hover:bg-yellow-400 font-bold text-xs shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 flex items-center justify-center cursor-pointer"
+            >
+              <Camera className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          <div className="flex-1 text-center sm:text-left space-y-2 min-w-0">
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight break-words">
+                {teacher.name}
+              </h1>
+              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-bisu-gold/20 text-bisu-gold border border-bisu-gold/30 shrink-0">
+                <Award className="w-3.5 h-3.5" />
+                <span>BISU Faculty</span>
+              </span>
+            </div>
+
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">
+              {teacher.college_name ? (
+                <>
+                  <span className="font-semibold text-bisu-blue-700 dark:text-bisu-gold">
+                    {teacher.college_name}
+                  </span>
+                  {teacher.department ? ` • ${teacher.department}` : ''}
+                </>
+              ) : (
+                teacher.department || 'Bohol Island State University — Bilar Campus'
+              )}
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs font-semibold text-slate-500">
+              <span className="flex items-center gap-1.5">
+                <MessageSquare className="w-4 h-4 text-bisu-blue-600 dark:text-bisu-blue-400" />
+                <span>{messages.length} Tributes</span>
+              </span>
+              <span>•</span>
+              <button
+                onClick={() => setIsEditPhotoOpen(true)}
+                className="inline-flex items-center gap-1.5 text-bisu-blue-600 dark:text-bisu-gold hover:underline font-bold transition-colors cursor-pointer"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>{teacher.photo_url ? 'Edit Profile Photo' : 'Attach Profile Photo'}</span>
+              </button>
+              <span>•</span>
+              <span className="flex items-center gap-1.5 text-rose-500">
+                <Heart className="w-4 h-4 fill-rose-500" />
+                <span>Happy Teacher's Day!</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Downloadable QR Code Card */}
+        <div className="shrink-0 flex flex-col items-center justify-center p-3.5 sm:p-4 rounded-2xl border border-slate-300/60 dark:border-slate-700/60 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md shadow-sm w-full md:w-auto text-center mt-2 md:mt-0 transition-all hover:border-bisu-gold/40">
+          <div className="flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wider mb-2">
+            <QrCode className="w-3.5 h-3.5 text-bisu-gold" />
+            <span>Timeline QR Code</span>
+          </div>
+
+          <div
+            onClick={() => setIsQrModalOpen(true)}
+            className="p-2 bg-white rounded-xl shadow-sm border border-slate-200 cursor-pointer relative group/qr transition-transform hover:scale-105"
+            title="Click to expand QR Code"
+          >
+            {qrDataUrl ? (
               <img
-                src={teacher.photo_url}
-                alt={teacher.name}
-                className="w-full h-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                src={qrDataUrl}
+                alt={`QR Code for ${teacher.name}'s timeline`}
+                className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-lg"
               />
             ) : (
-              getInitials(teacher.name)
+              <div className="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center bg-slate-100 rounded-lg">
+                <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+              </div>
             )}
-
-            {/* Hover overlay indicator */}
-            <div
-              onClick={() => setIsEditPhotoOpen(true)}
-              className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-bold cursor-pointer backdrop-blur-[1px]"
-            >
-              <Camera className="w-5 h-5 mb-0.5 text-bisu-gold" />
-              <span>{teacher.photo_url ? 'Change' : 'Add Photo'}</span>
+            <div className="absolute inset-0 bg-bisu-blue-900/70 rounded-xl opacity-0 group-hover/qr:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-bold backdrop-blur-[1px]">
+              <span>Click to view</span>
             </div>
           </div>
 
-          {/* Persistent Floating Camera Badge */}
           <button
             type="button"
-            onClick={() => setIsEditPhotoOpen(true)}
-            title={teacher.photo_url ? 'Change profile picture' : 'Add profile picture'}
-            className="absolute -bottom-2 -right-2 p-2 rounded-xl bg-bisu-gold text-slate-950 hover:bg-yellow-400 font-bold text-xs shadow-md border-2 border-white dark:border-slate-900 transition-all hover:scale-110 flex items-center justify-center cursor-pointer"
+            onClick={() => handleDownloadQr(false)}
+            disabled={!qrDataUrl || isDownloading}
+            className="mt-2.5 w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-bisu-gold hover:bg-yellow-400 active:scale-95 text-slate-950 text-xs font-extrabold shadow-sm transition-all cursor-pointer disabled:opacity-50"
+            title="Download QR code as PNG"
           >
-            <Camera className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="flex-1 text-center sm:text-left space-y-2">
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-              {teacher.name}
-            </h1>
-            <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-bisu-gold/20 text-bisu-gold border border-bisu-gold/30">
-              <Award className="w-3.5 h-3.5" />
-              <span>BISU Faculty</span>
-            </span>
-          </div>
-
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">
-            {teacher.college_name ? (
-              <>
-                <span className="font-semibold text-bisu-blue-700 dark:text-bisu-gold">
-                  {teacher.college_name}
-                </span>
-                {teacher.department ? ` • ${teacher.department}` : ''}
-              </>
+            {isDownloading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              teacher.department || 'Bohol Island State University — Bilar Campus'
+              <Download className="w-3.5 h-3.5" />
             )}
-          </p>
+            <span>Download PNG</span>
+          </button>
 
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 pt-2 text-xs font-semibold text-slate-500">
-            <span className="flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-bisu-blue-600 dark:text-bisu-blue-400" />
-              <span>{messages.length} Tributes</span>
-            </span>
-            <span>•</span>
-            <button
-              onClick={() => setIsEditPhotoOpen(true)}
-              className="inline-flex items-center gap-1.5 text-bisu-blue-600 dark:text-bisu-gold hover:underline font-bold transition-colors"
-            >
-              <Camera className="w-3.5 h-3.5" />
-              <span>{teacher.photo_url ? 'Edit Profile Photo' : 'Attach Profile Photo'}</span>
-            </button>
-            <span>•</span>
-            <span className="flex items-center gap-1.5 text-rose-500">
-              <Heart className="w-4 h-4 fill-rose-500" />
-              <span>Happy Teacher's Day!</span>
-            </span>
-          </div>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
+            Scan to view timeline
+          </span>
         </div>
       </div>
 
-      {/* Main Grid: Submission Form on Left, Timeline on Right */}
+      {/* Main Grid: Sticky Submission Form on Left, Scrollable Tributes on Right */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Sticky Submission Form (5 columns) */}
-        <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
+        <div className="lg:col-span-5 lg:sticky lg:top-20 self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto custom-scrollbar">
           <TimelineSubmissionForm
             teacherSlug={teacher.slug}
             teacherName={teacher.name}
@@ -288,11 +553,11 @@ export function TeacherTimeline() {
           />
         </div>
 
-        {/* Chronological Timeline Entries (7 columns) */}
-        <div className="lg:col-span-7 space-y-5">
+        {/* Student & Peer Tributes (7 columns) - Dedicated Outlined Container with Scrollable Tributes */}
+        <div className="lg:col-span-7 flex flex-col glass-card rounded-2xl border border-slate-300/60 dark:border-slate-700/60 p-4 sm:p-6 lg:sticky lg:top-20 self-start lg:max-h-[calc(100vh-6rem)]">
           {/* Timeline Header & Filter / Sort Controls */}
-          <div className="glass-card rounded-2xl p-4 sm:p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="space-y-4 pb-4 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <span>Student & Peer Tributes</span>
@@ -400,8 +665,10 @@ export function TeacherTimeline() {
             </div>
           </div>
 
-          {/* Timeline Entry List */}
-          <TimelineEntryList messages={displayedMessages} activeFilter={activeFilter} />
+          {/* Scrollable Timeline Entries */}
+          <div className="overflow-y-auto pr-1 sm:pr-2 pt-4 flex-1 space-y-4 custom-scrollbar min-h-[300px]">
+            <TimelineEntryList messages={displayedMessages} activeFilter={activeFilter} />
+          </div>
         </div>
       </div>
 
@@ -412,6 +679,113 @@ export function TeacherTimeline() {
         teacher={teacher}
         onPhotoUpdated={handlePhotoUpdated}
       />
+
+      {/* Expanded QR Code Modal */}
+      {isQrModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsQrModalOpen(false);
+          }}
+        >
+          <div className="relative w-full max-w-md glass-card rounded-3xl p-6 sm:p-7 border border-slate-300/60 dark:border-slate-700/60 bg-white/95 dark:bg-slate-900/95 shadow-2xl space-y-5 text-center">
+            {/* Close button */}
+            <button
+              type="button"
+              onClick={() => setIsQrModalOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Header info */}
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-bisu-gold/20 text-bisu-gold border border-bisu-gold/30 mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Special Keepsake QR</span>
+              </div>
+              <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
+                {teacher.name}
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xs mx-auto">
+                Scan with any smartphone camera to view and scroll this teacher's tribute timeline!
+              </p>
+            </div>
+
+            {/* High-Contrast QR Display */}
+            <div className="p-4 bg-white rounded-2xl shadow-inner border border-slate-200 inline-block mx-auto">
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt={`QR code for ${teacher.name}`}
+                  className="w-48 h-48 sm:w-56 sm:h-56 object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-bisu-gold" />
+                </div>
+              )}
+            </div>
+
+            {/* Link Preview & Copy */}
+            <div className="flex items-center gap-2 p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/70 text-xs">
+              <span className="flex-1 truncate text-left text-slate-600 dark:text-slate-300 font-mono text-[11px] px-2">
+                {`${window.location.origin}/teachers/${teacher.slug}`}
+              </span>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs hover:bg-slate-50 dark:hover:bg-slate-600 shadow-sm transition-all cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* Download Buttons */}
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleDownloadQr(false)}
+                disabled={!qrDataUrl || isDownloading}
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-bisu-gold hover:bg-yellow-400 active:scale-98 text-slate-950 text-xs sm:text-sm font-extrabold shadow-md transition-all cursor-pointer disabled:opacity-50"
+              >
+                {isDownloading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Download className="w-4 h-4" />
+                )}
+                <span>Download Commemorative Card (PNG)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleDownloadQr(true)}
+                disabled={!qrDataUrl || isDownloading}
+                className="w-full inline-flex items-center justify-center gap-2 py-2 px-4 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all cursor-pointer disabled:opacity-50"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>Download QR Only (PNG)</span>
+              </button>
+            </div>
+
+            <p className="text-[11px] text-slate-400 dark:text-slate-500 italic">
+              Share this QR code with {teacher.name} so they can scan and celebrate their special day!
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

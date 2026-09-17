@@ -11,19 +11,36 @@ const CONFETTI_COLORS = [
   '#ffffff', // white
 ];
 
+export function triggerCelebration(originX, originY) {
+  if (typeof window === 'undefined') return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  window.dispatchEvent(
+    new CustomEvent('td-confetti-celebration', {
+      detail: {
+        originX: originX ?? window.innerWidth / 2,
+        originY: originY ?? 70,
+      },
+    })
+  );
+}
+
 export function triggerConfettiBurst(options = {}) {
   if (typeof window === 'undefined') return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  const y = options.y ?? window.innerHeight / 2;
+  const defaultAngle = y < 140 ? 90 : -90; // shoot downward into viewport if near header
 
   window.dispatchEvent(
     new CustomEvent('td-confetti-burst', {
       detail: {
         x: options.x ?? window.innerWidth / 2,
-        y: options.y ?? window.innerHeight / 2,
-        count: options.count ?? 45,
-        spread: options.spread ?? 70,
-        velocity: options.velocity ?? 14,
-        angle: options.angle ?? -90, // upwards
+        y: y,
+        count: options.count ?? 55,
+        spread: options.spread ?? 90,
+        velocity: options.velocity ?? 16,
+        angle: options.angle ?? defaultAngle,
       },
     })
   );
@@ -130,29 +147,42 @@ export function ConfettiCanvas() {
       }
     };
 
-    // Custom Event Listener for programmatic bursts
+    // Celebration Cannon sequence: button fountain, left/right cannons & center blast
+    const fireCelebration = (originX, originY) => {
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+      const x = originX ?? window.innerWidth / 2;
+      const y = originY ?? 70;
+
+      // 1. Shower directly from the button downwards into the viewport
+      spawnParticles(x, y, 65, 140, 16, 90);
+
+      // 2. Left Cannon shooting up & towards the center
+      spawnParticles(window.innerWidth * 0.15, window.innerHeight * 0.65, 60, 65, 19, -60);
+
+      // 3. Right Cannon shooting up & towards the center
+      spawnParticles(window.innerWidth * 0.85, window.innerHeight * 0.65, 60, 65, 19, -120);
+
+      // 4. Staggered Center Cannon explosion (~160ms later)
+      setTimeout(() => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        spawnParticles(window.innerWidth * 0.5, window.innerHeight * 0.45, 80, 360, 18, 0);
+      }, 160);
+    };
+
+    // Custom Event Listener for programmatic bursts (e.g. Header Celebrate button)
     const handleCustomBurst = (e) => {
       const { x, y, count, spread, velocity, angle } = e.detail || {};
       spawnParticles(x, y, count, spread, velocity, angle);
     };
 
-    window.addEventListener('td-confetti-burst', handleCustomBurst);
-
-    // Global page click handler:
-    // Fires a small burst at the pointer on any click on the page,
-    // except clicks on the celebrate button itself (it already fires its own).
-    const handleDocumentClick = (e) => {
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-      // Check if click originated from celebrate button
-      if (e.target.closest('[data-celebrate-button="true"]')) {
-        return;
-      }
-
-      spawnParticles(e.clientX, e.clientY, 28, 360, 9, 0);
+    const handleCelebrationEvent = (e) => {
+      const { originX, originY } = e.detail || {};
+      fireCelebration(originX, originY);
     };
 
-    document.addEventListener('click', handleDocumentClick);
+    window.addEventListener('td-confetti-burst', handleCustomBurst);
+    window.addEventListener('td-confetti-celebration', handleCelebrationEvent);
 
     // Three-point burst on page load (~900ms in): left, right, then centre
     const timeout1 = setTimeout(() => {
@@ -179,7 +209,7 @@ export function ConfettiCanvas() {
       clearTimeout(timeout3);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('td-confetti-burst', handleCustomBurst);
-      document.removeEventListener('click', handleDocumentClick);
+      window.removeEventListener('td-confetti-celebration', handleCelebrationEvent);
       if (animId) cancelAnimationFrame(animId);
     };
   }, []);

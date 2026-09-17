@@ -1,44 +1,32 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import api from '../api/client.js';
+import { useTheme } from '../context/ThemeContext.jsx';
 import WallSubmissionPanel from './WallSubmissionPanel.jsx';
-import { Loader2, Search, Shuffle, X } from 'lucide-react';
-
-const SEED_DATA = [
-  { id: 'seed-1', to: "Sir Cuadra", msg: "Happy Teacher's Day Sir Cuadra, salamat sa tanan!", from: "Anonymous" },
-  { id: 'seed-2', to: "Ma'am Gumanoy", msg: "Happy Teacher's Day Ma'am Gumanoy — your patience never runs out.", from: "BSCS-4B" },
-  { id: 'seed-3', to: "Sir Joel Piollo", msg: "Happy Teachers Day Sir Joel Piollo, thank you for pushing us.", from: "BSCS-4B" },
-  { id: 'seed-4', to: "Sir Max", msg: "Happy Teachers Day Sir Max. You made stats bearable, promise.", from: "Anonymous" },
-  { id: 'seed-5', to: "Everyone", msg: "Happy Teachers Day everyone — BISU Bilar loves you!", from: "Anonymous" },
-  { id: 'seed-6', to: "Sir Darrel Abuyabor Cardona", msg: "Happy Teachers Day to our beloved Sir Darrel. God bless sir.", from: "James Ronald" },
-  { id: 'seed-7', to: "Ma'am", msg: "Happy Teachers Day sa akong maam. I love you hehe.", from: "Anonymous" },
-  { id: 'seed-8', to: "Sir Cuadra", msg: "Happy Teachers Day Sir Cuadra, best adviser ever.", from: "Kentoyyy" },
-  { id: 'seed-9', to: "Sir Rex Tejada", msg: "Happy Teachers Day Sir Rex Tejada. Kinaidalan sa tanan among permi sir, mwaaa.", from: "Anonymous" },
-  { id: 'seed-10', to: "Sir Cuadra", msg: "Happy Teachers Day Sir Cuadra.", from: "Top 1 BSCS-4A" },
-  { id: 'seed-11', to: "All", msg: "HAPPY TEACHERS DAY ALL", from: "Anonymous" },
-  { id: 'seed-12', to: "Faculty", msg: "LET'S GOOOOO", from: "Anonymous" },
-  { id: 'seed-13', to: "Faculty", msg: "Hooray! Hooray! Hooray! Hooray!", from: "Anonymous" },
-  { id: 'seed-14', to: "Sir Digamon", msg: "Happy Teachers Day Sir Digamon. Bahala usab2 imo instructions para we love you mwa.", from: "Anonymous" },
-  { id: 'seed-15', to: "Ma'am Auza", msg: "You explained the same lesson four ways until it clicked. Thank you.", from: "Kyle, BSED-3" },
-  { id: 'seed-16', to: "Sir Balatero", msg: "Salamat sa pagtudlo nga dili lang code ang importante.", from: "Anonymous" },
-  { id: 'seed-17', to: "Ma'am Lumayag", msg: "Field work days were long, but we looked forward to them.", from: "Section 2-B" },
-  { id: 'seed-18', to: "Sir Tagalog", msg: "You read my whole capstone draft at 11pm and still replied by morning.", from: "Danica, BSIT-4" },
-  { id: 'seed-19', to: "Ma'am Paran", msg: "Thank you for asking if I was okay when nobody else did.", from: "Anonymous" },
-  { id: 'seed-20', to: "Sir Ompad", msg: "Your 7am class taught me to wake up early. Worth it.", from: "Mark, BSIT-2" }
-];
+import {
+  Loader2,
+  Search,
+  Shuffle,
+  X,
+  Globe,
+  Plus,
+  Minus,
+  RotateCcw,
+  GraduationCap,
+} from 'lucide-react';
 
 const PALETTE = [
-  { c: 'linear-gradient(135deg,#ffe08a,#ffb020)', glow: '#ffb020', bg: 'rgba(255,176,32,.14)' },
-  { c: 'linear-gradient(135deg,#9db8ff,#2f6bff)', glow: '#2f6bff', bg: 'rgba(47,107,255,.14)' },
-  { c: 'linear-gradient(135deg,#ffb0c8,#ff5f8f)', glow: '#ff5f8f', bg: 'rgba(255,95,143,.14)' },
-  { c: 'linear-gradient(135deg,#9ff0e2,#39e0c4)', glow: '#39e0c4', bg: 'rgba(57,224,196,.14)' },
-  { c: 'linear-gradient(135deg,#d3bdff,#b28dff)', glow: '#b28dff', bg: 'rgba(178,141,255,.14)' },
-  { c: 'linear-gradient(135deg,#ffc7a3,#ff9f6b)', glow: '#ff9f6b', bg: 'rgba(255,159,107,.14)' }
+  { c: 'linear-gradient(135deg,#ffe08a,#ffb020)', glow: '#f59e0b', bgDark: 'rgba(255,176,32,.15)', bgLight: 'rgba(255, 251, 235, 0.96)', borderLight: 'rgba(245, 158, 11, 0.45)' },
+  { c: 'linear-gradient(135deg,#9db8ff,#2f6bff)', glow: '#3b82f6', bgDark: 'rgba(47,107,255,.15)', bgLight: 'rgba(239, 246, 255, 0.96)', borderLight: 'rgba(59, 130, 246, 0.45)' },
+  { c: 'linear-gradient(135deg,#ffb0c8,#ff5f8f)', glow: '#ec4899', bgDark: 'rgba(255,95,143,.15)', bgLight: 'rgba(253, 242, 248, 0.96)', borderLight: 'rgba(236, 72, 153, 0.45)' },
+  { c: 'linear-gradient(135deg,#9ff0e2,#39e0c4)', glow: '#10b981', bgDark: 'rgba(57,224,196,.15)', bgLight: 'rgba(236, 253, 245, 0.96)', borderLight: 'rgba(16, 185, 129, 0.45)' },
+  { c: 'linear-gradient(135deg,#d3bdff,#b28dff)', glow: '#8b5cf6', bgDark: 'rgba(178,141,255,.15)', bgLight: 'rgba(245, 243, 255, 0.96)', borderLight: 'rgba(139, 92, 246, 0.45)' },
+  { c: 'linear-gradient(135deg,#ffc7a3,#ff9f6b)', glow: '#f97316', bgDark: 'rgba(255,159,107,.15)', bgLight: 'rgba(255, 247, 237, 0.96)', borderLight: 'rgba(249, 115, 22, 0.45)' }
 ];
 
 function getInitials(name) {
-  if (!name) return '🎓';
+  if (!name) return null;
   const parts = name.replace(/^(Sir|Ma'am|Maam|Prof\.|Dr\.|Dean|Instructor|Everyone|Faculty|All)\s*/i, '').trim().split(/\s+/).filter(Boolean);
-  if (!parts.length) return '🎓';
+  if (!parts.length) return null;
   return (((parts[0] || '')[0] || '') + ((parts[1] || '')[0] || '')).toUpperCase();
 }
 
@@ -52,11 +40,19 @@ function extractRecipient(msg) {
 }
 
 export function WallCanvas() {
-  const [greetings, setGreetings] = useState(SEED_DATA);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+
+  const [greetings, setGreetings] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [focusedCard, setFocusedCard] = useState(null);
+  const focusedCardRef = useRef(null);
+
   const [shuffleOffset, setShuffleOffset] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  const searchInputRef = useRef(null);
   const stageWrapRef = useRef(null);
   const stageRef = useRef(null);
   const cardElementsRef = useRef(new Map());
@@ -79,30 +75,47 @@ export function WallCanvas() {
   // Individual Card Drag-and-Drop Tracking
   const activeCardDragRef = useRef(null);
 
-  // Fetch greetings from API, merging with seed data
+  // Sync focusedCardRef with state so loop knows when to pause auto-rotate
+  useEffect(() => {
+    focusedCardRef.current = focusedCard;
+  }, [focusedCard]);
+
+  // Focus search input when opened
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
+  // Escape key handler to close focused card or search
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (focusedCard) setFocusedCard(null);
+        if (isSearchOpen && !searchQuery) setIsSearchOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedCard, isSearchOpen, searchQuery]);
+
+  // Fetch greetings directly from database via API
   useEffect(() => {
     let isMounted = true;
     const fetchWallGreetings = async () => {
       try {
-        const res = await api.getWallGreetings({ limit: 60 });
-        if (isMounted && res.items && res.items.length > 0) {
+        const res = await api.getWallGreetings({ limit: 150 });
+        if (isMounted && res.items) {
           const apiFormatted = res.items.map((item, idx) => ({
             id: item.id || `api-${idx}`,
             to: item.to || extractRecipient(item.message_text),
             msg: item.message_text || '',
             from: item.sender_name || 'Anonymous',
           }));
-          const combined = [...apiFormatted];
-          for (const seed of SEED_DATA) {
-            if (combined.length >= 40) break;
-            if (!combined.some(c => c.msg === seed.msg)) {
-              combined.push(seed);
-            }
-          }
-          setGreetings(combined);
+          setGreetings(apiFormatted);
         }
       } catch (err) {
-        console.warn('Notice: using seeded campus greetings for globe wall:', err);
+        console.error('Failed to load wall greetings from API:', err);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -144,7 +157,8 @@ export function WallCanvas() {
     pointsRef.current = filteredGreetings.map((d, i) => {
       // Apply shuffle offset so users can randomize viewing distribution
       const orderIdx = (i + shuffleOffset) % Math.max(1, totalCount);
-      const y = 1 - (orderIdx / Math.max(1, totalCount - 1)) * 2;
+      // Constrain vertical pole compression (0.82) so cards don't bunch at top/bottom poles
+      const y = totalCount <= 1 ? 0 : (1 - (orderIdx / Math.max(1, totalCount - 1)) * 2) * 0.82;
       const rad = Math.sqrt(Math.max(0, 1 - y * y));
       const theta = golden * orderIdx;
       return {
@@ -158,15 +172,24 @@ export function WallCanvas() {
     });
   }, [filteredGreetings, totalCount, golden, shuffleOffset]);
 
-  // Dynamic radius fitting based on stage wrap dimensions and capacity N
+  // Dynamic radius fitting with generous spacing to avoid overlapping cards
   useEffect(() => {
     const fitRadius = () => {
       if (!stageWrapRef.current) return;
       const rect = stageWrapRef.current.getBoundingClientRect();
-      const baseR = Math.min(rect.width, rect.height) * 0.28;
-      // Expand radius smoothly as data density grows
-      const densityBonus = Math.min(1.4, 1 + Math.sqrt(Math.max(0, totalCount - 20)) * 0.035);
-      stateRef.current.R = baseR * densityBonus;
+      const isMobile = window.innerWidth < 640;
+
+      // Ample radius so cards have breathing room and don't clump together
+      const widthFactor = isMobile ? 0.38 : 0.35;
+      const heightFactor = isMobile ? 0.42 : 0.44;
+      const computedR = Math.min(rect.width * widthFactor, rect.height * heightFactor);
+
+      const minR = isMobile ? 165 : 300;
+      const maxR = isMobile ? 230 : 440;
+
+      // Slight density bonus for larger pools so they stay spread out
+      const countSpacing = Math.min(1.25, 1 + Math.max(0, totalCount - 6) * 0.015);
+      stateRef.current.R = Math.max(minR, Math.min(maxR, computedR * countSpacing));
     };
 
     fitRadius();
@@ -246,8 +269,8 @@ export function WallCanvas() {
 
     const loop = () => {
       const state = stateRef.current;
-      // Globe keeps rotating smoothly even while a message is being dragged!
-      if (!state.draggingStage) {
+      // Globe keeps rotating smoothly unless being dragged OR when focused on a card
+      if (!state.draggingStage && !focusedCardRef.current) {
         if (Math.abs(state.vrx) > 0.0001 || Math.abs(state.vry) > 0.0001) {
           state.rx += state.vrx;
           state.ry += state.vry;
@@ -423,14 +446,6 @@ export function WallCanvas() {
     stageWrapRef.current?.classList.remove('dragging');
   };
 
-  // Wheel Zoom
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const state = stateRef.current;
-    state.idleT = 0;
-    state.zoom = Math.max(0.55, Math.min(1.8, state.zoom - e.deltaY * 0.0009));
-  };
-
   const handleZoomIn = () => {
     const state = stateRef.current;
     state.idleT = 0;
@@ -447,8 +462,9 @@ export function WallCanvas() {
     const state = stateRef.current;
     state.idleT = 0;
     state.zoom = 1;
-    state.rx = -0.15;
-    state.ry = 0;
+    // Slight 3D inclination so circular arrangement displays with pleasing space between cards
+    state.rx = -0.16;
+    state.ry = 0.22;
     state.vrx = 0;
     state.vry = 0;
   };
@@ -459,45 +475,68 @@ export function WallCanvas() {
 
   const handleCardClick = (id) => {
     const el = cardElementsRef.current.get(id);
-    if (!el) return;
-    el.classList.remove('pop');
-    void el.offsetWidth;
-    el.classList.add('pop');
+    if (el) {
+      el.classList.remove('pop');
+      void el.offsetWidth;
+      el.classList.add('pop');
+    }
+    const idx = greetings.findIndex(g => g.id === id);
+    if (idx !== -1) {
+      const cardData = greetings[idx];
+      const pal = PALETTE[idx % PALETTE.length];
+      setFocusedCard({ ...cardData, pal });
+    }
   };
 
   return (
     <div className="w-full select-none">
-      {/* Globe Top Toolbar: Pill Counter, Search Filter, Shuffle, & Zoom Controls */}
+      {/* Globe Top Toolbar: Count Number Only, Expanding Search Icon, & Zoom Controls */}
       <div className="globe-toolbar">
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="globe-pill">
-            <span>🌐 Living wall —</span>
-            <b id="ctext">{totalCount}</b>
-            <span>{searchQuery ? `of ${greetings.length} greetings` : 'greetings orbiting'}</span>
+        <div className="flex items-center gap-2">
+          {/* Pill Counter: Number Only with Globe Icon */}
+          <span className="globe-pill shrink-0" title={`${totalCount} Total Greetings`}>
+            <Globe className="w-4 h-4 text-bisu-gold shrink-0" />
+            <b id="ctext" className="font-extrabold text-sm text-slate-900 dark:text-white leading-none">
+              {totalCount}
+            </b>
           </span>
 
-          {/* Quick Search Filter for Large Datasets */}
-          <div className="relative flex items-center">
-            <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-3 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="Search teacher..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-8 pr-7 py-1.5 rounded-full text-xs bg-white/80 dark:bg-slate-900/80 border border-slate-200/80 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-celebrate-gold w-36 sm:w-48 transition-all"
-            />
-            {searchQuery && (
+          {/* Quick Search: Icon Only until clicked */}
+          {!isSearchOpen && !searchQuery ? (
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="globe-zbtn"
+              aria-label="Search greetings"
+              title="Search greetings"
+            >
+              <Search className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="relative flex items-center animate-in fade-in zoom-in-95 duration-150">
+              <Search className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500 absolute left-3 pointer-events-none" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-36 sm:w-52 pl-8 pr-7 py-2 rounded-full text-xs bg-white/95 dark:bg-slate-900/90 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-celebrate-gold/50 shadow-sm transition-all"
+              />
               <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 text-slate-400 hover:text-white text-xs"
+                onClick={() => {
+                  setSearchQuery('');
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-2 text-slate-400 hover:text-slate-600 dark:hover:text-white text-xs p-1"
+                title="Close search"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
-        <div className="globe-zoomctl">
+        <div className="globe-zoomctl shrink-0 ml-auto sm:ml-0">
           <button
             onClick={handleShuffle}
             className="globe-zbtn"
@@ -506,29 +545,25 @@ export function WallCanvas() {
           >
             <Shuffle className="w-3.5 h-3.5" />
           </button>
-          <button onClick={handleZoomIn} className="globe-zbtn" aria-label="Zoom in" title="Zoom In">
-            +
+          <button onClick={handleZoomIn} className="globe-zbtn" aria-label="Zoom in" title="Zoom In (+)">
+            <Plus className="w-4 h-4" />
           </button>
-          <button onClick={handleZoomOut} className="globe-zbtn" aria-label="Zoom out" title="Zoom Out">
-            −
+          <button onClick={handleZoomOut} className="globe-zbtn" aria-label="Zoom out" title="Zoom Out (−)">
+            <Minus className="w-4 h-4" />
           </button>
-          <button onClick={handleReset} className="globe-zbtn" aria-label="Reset view" title="Reset Center">
-            ↺
+          <button onClick={handleReset} className="globe-zbtn" aria-label="Reset view" title="Reset Center (↺)">
+            <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* 3D Globe Stage Canvas */}
+      {/* 3D Globe Stage Canvas (Natural page scrolling preserved, no wheel hijack) */}
       <div
         ref={stageWrapRef}
         className="stage-wrap"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onTouchStart={handlePointerDown}
-        onTouchMove={handlePointerMove}
-        onTouchEnd={handlePointerUp}
-        onWheel={handleWheel}
       >
         {/* Glowing Center Core */}
         <div id="core" />
@@ -553,13 +588,13 @@ export function WallCanvas() {
                 className="gcard"
                 style={{
                   '--card-glow': pal.glow,
-                  background: pal.bg,
-                  borderColor: 'rgba(255,255,255,0.16)',
+                  background: isDark ? pal.bgDark : pal.bgLight,
+                  borderColor: isDark ? 'rgba(255,255,255,0.18)' : pal.borderLight,
                 }}
               >
                 <div className="gc-top pointer-events-none">
                   <div className="gc-av" style={{ background: pal.c }}>
-                    {getInitials(g.to)}
+                    {getInitials(g.to) || <GraduationCap className="w-3.5 h-3.5 text-slate-900" />}
                   </div>
                   <div className="gc-name">To {g.to}</div>
                 </div>
@@ -581,11 +616,92 @@ export function WallCanvas() {
           </div>
         )}
 
+        {/* Empty State when no greetings are present or match search */}
+        {!loading && filteredGreetings.length === 0 && (
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center z-30 pointer-events-none p-6 rounded-3xl bg-slate-900/70 backdrop-blur-md border border-slate-800 shadow-2xl max-w-sm">
+            <p className="text-base font-bold text-white mb-1">
+              {searchQuery ? 'No Matching Greetings' : 'No Wall Greetings Yet'}
+            </p>
+            <p className="text-xs text-slate-400">
+              {searchQuery
+                ? `No greetings found matching "${searchQuery}"`
+                : 'Be the first to post a tribute on the living wall!'}
+            </p>
+          </div>
+        )}
+
         {/* Floating Wall Submission Panel ("Post a Greeting" modal) */}
-        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-50">
+        <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-40">
           <WallSubmissionPanel onGreetingSubmitted={handleGreetingSubmitted} />
         </div>
       </div>
+
+      {/* Focused Greeting Spotlight Modal (Brought to front, pauses rotation) */}
+      {focusedCard && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
+          onClick={() => setFocusedCard(null)}
+        >
+          <div
+            className="relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border transition-all animate-in zoom-in-95 duration-200"
+            style={{
+              background: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+              borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)',
+              boxShadow: isDark
+                ? `0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px -10px ${focusedCard.pal?.glow || '#3b82f6'}`
+                : '0 25px 50px -12px rgba(15, 23, 42, 0.2), 0 0 35px -10px rgba(59, 130, 246, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setFocusedCard(null)}
+              className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title="Close and resume orbiting"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* Recipient & Avatar */}
+            <div className="flex items-center gap-3 mb-4 pr-8">
+              <div
+                className="w-11 h-11 rounded-2xl flex items-center justify-center font-bold text-sm text-slate-900 shadow-md shrink-0"
+                style={{ background: focusedCard.pal?.c || 'linear-gradient(135deg,#ffe08a,#ffb020)' }}
+              >
+                {getInitials(focusedCard.to) || <GraduationCap className="w-4 h-4 text-slate-900" />}
+              </div>
+              <div className="min-w-0">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 block">
+                  Greeting Tribute
+                </span>
+                <h3 className="text-lg font-black text-slate-900 dark:text-white leading-tight truncate">
+                  To {focusedCard.to}
+                </h3>
+              </div>
+            </div>
+
+            {/* Full Greeting Message */}
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 mb-4 max-h-[50vh] overflow-y-auto">
+              <p className="text-sm sm:text-base text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-wrap select-text font-normal">
+                {focusedCard.msg}
+              </p>
+            </div>
+
+            {/* Sender & Footer */}
+            <div className="flex items-center justify-between pt-1 text-xs text-slate-500 dark:text-slate-400">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <span>From:</span>
+                <strong className="text-slate-900 dark:text-white font-bold truncate">
+                  {focusedCard.from}
+                </strong>
+              </div>
+              <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 shrink-0">
+                Public Wall
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
