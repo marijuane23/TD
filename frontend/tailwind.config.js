@@ -8,6 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
+        celebrate: {
+          blue: '#2f6bff',
+          gold: '#ffb020',
+          rose: '#ff5f8f',
+          mint: '#39e0c4',
+          paleGold: '#ffe08a',
+          paleBlue: '#9bc0ff',
+        },
         bisu: {
           blue: {
             DEFAULT: '#1E3A8A',
@@ -40,7 +48,9 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Inter', 'Outfit', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Bricolage Grotesque"', 'sans-serif'],
+        body: ['Outfit', 'sans-serif'],
       },
     },
   },
