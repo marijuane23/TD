@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TeacherCard from './TeacherCard.jsx';
-import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Loader2, Users, Trash2, CheckSquare } from 'lucide-react';
+import api from '../api/client.js';
+import { Search, ArrowUpDown, ChevronLeft, ChevronRight, Loader2, Users, Trash2, CheckSquare, GraduationCap } from 'lucide-react';
 
 export function TeacherGrid({
   fetchTeachersFn,
@@ -9,6 +10,7 @@ export function TeacherGrid({
   onDeleteTeacher,
   onBulkDelete,
   refreshTrigger = 0,
+  defaultCollege = 'CTECH',
 }) {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -20,6 +22,15 @@ export function TeacherGrid({
   // Filter & Pagination state
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [selectedCollege, setSelectedCollege] = useState(defaultCollege);
+  const [collegesList, setCollegesList] = useState([
+    { code: 'CTECH', name: 'CTECH (Technology)' },
+    { code: 'CTE', name: 'CTE (Teacher Education)' },
+    { code: 'CBM', name: 'CBM (Business & Mgmt)' },
+    { code: 'CFES', name: 'CFES (Forestry & Env Sci)' },
+    { code: 'COAS', name: 'COAS (Arts & Sciences)' },
+    { code: 'CADS', name: 'CADS (Agriculture)' },
+  ]);
   const [sortOption, setSortOption] = useState('name_asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -34,10 +45,28 @@ export function TeacherGrid({
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Reset selections when page, search, sort, or refresh trigger changes
+  // Reset selections when page, search, college, sort, or refresh trigger changes
   useEffect(() => {
     setSelectedIds([]);
-  }, [currentPage, debouncedSearch, sortOption, refreshTrigger]);
+  }, [currentPage, debouncedSearch, selectedCollege, sortOption, refreshTrigger]);
+
+  // Load official colleges list
+  useEffect(() => {
+    let isMounted = true;
+    api.getColleges()
+      .then((data) => {
+        if (isMounted && Array.isArray(data) && data.length > 0) {
+          setCollegesList(data.map((c) => ({
+            code: c.code,
+            name: `${c.code}${c.name ? ` (${c.name})` : ''}`,
+          })));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Load teachers from backend API
   useEffect(() => {
@@ -48,6 +77,7 @@ export function TeacherGrid({
       try {
         const data = await fetchTeachersFn({
           q: debouncedSearch,
+          college: selectedCollege,
           sort: sortOption,
           page: currentPage,
           limit: 12, // 4 cols x 3 rows
@@ -70,7 +100,7 @@ export function TeacherGrid({
     return () => {
       isMounted = false;
     };
-  }, [debouncedSearch, sortOption, currentPage, refreshTrigger, fetchTeachersFn]);
+  }, [debouncedSearch, selectedCollege, sortOption, currentPage, refreshTrigger, fetchTeachersFn]);
 
   // Selection toggle handlers
   const handleToggleSelect = (id) => {
@@ -93,7 +123,7 @@ export function TeacherGrid({
   return (
     <div className="w-full space-y-6">
       {/* Search, Filter & Count Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 glass-card p-4 rounded-2xl">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 glass-card p-4 rounded-2xl border border-slate-300/60 dark:border-slate-700/60">
         {/* Search Input */}
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -106,22 +136,49 @@ export function TeacherGrid({
           />
         </div>
 
-        {/* Sort Dropdown */}
-        <div className="flex items-center gap-2">
-          <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0" />
-          <select
-            value={sortOption}
-            onChange={(e) => {
-              setSortOption(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer"
-          >
-            <option value="name_asc">Name (A → Z)</option>
-            <option value="name_desc">Name (Z → A)</option>
-            <option value="newest">Newest Added</option>
-            <option value="department">By Department</option>
-          </select>
+        {/* Filters and Controls */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
+          {/* College Dropdown Select (Default: CTECH) */}
+          <div className="flex items-center gap-1.5">
+            <GraduationCap className="w-4 h-4 text-bisu-gold shrink-0" />
+            <select
+              value={selectedCollege}
+              onChange={(e) => {
+                setSelectedCollege(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer shadow-sm"
+              title="Filter / Select College (Default: CTECH)"
+            >
+              <option value="CTECH">CTECH</option>
+              <option value="CTE">CTE</option>
+              <option value="CBM">CBM</option>
+              <option value="CFES">CFES</option>
+              <option value="COAS">COAS</option>
+              <option value="CADS">CADS</option>
+              <option value="all">All Colleges</option>
+            </select>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="flex items-center gap-1.5">
+            <ArrowUpDown className="w-4 h-4 text-slate-400 shrink-0" />
+            <select
+              value={sortOption}
+              onChange={(e) => {
+                setSortOption(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="px-3 py-2 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer"
+            >
+              <option value="name_asc">Name (A → Z)</option>
+              <option value="name_desc">Name (Z → A)</option>
+              <option value="college_asc">College (A → Z)</option>
+              <option value="college_desc">College (Z → A)</option>
+              <option value="department">By Department</option>
+              <option value="newest">Newest Added</option>
+            </select>
+          </div>
 
           {/* Quick Select All Page button in Admin mode */}
           {isAdmin && teachers.length > 0 && (
@@ -193,11 +250,15 @@ export function TeacherGrid({
           <p className="text-sm font-semibold">{error}</p>
         </div>
       ) : teachers.length === 0 ? (
-        <div className="text-center py-16 glass-card rounded-2xl">
+        <div className="text-center py-16 glass-card rounded-2xl border border-slate-300/60 dark:border-slate-700/60">
           <Users className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
           <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">No faculty found</h4>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
-            {searchTerm ? `No teachers match "${searchTerm}". Try a different keyword.` : 'No teachers in the directory yet.'}
+            {searchTerm
+              ? `No teachers match "${searchTerm}". Try a different keyword.`
+              : selectedCollege && selectedCollege !== 'all'
+              ? `No faculty currently listed under ${selectedCollege}. Try selecting another college or "All Colleges".`
+              : 'No teachers in the directory yet.'}
           </p>
         </div>
       ) : (

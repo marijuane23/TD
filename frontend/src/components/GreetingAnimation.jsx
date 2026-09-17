@@ -51,7 +51,7 @@ export function GreetingAnimation() {
         {/* Celebration Badge with Pulsing Gold Dot (Expanding Ring Shadow) */}
         <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full border border-celebrate-gold/30 bg-celebrate-gold/10 text-xs sm:text-sm font-semibold tracking-wide text-amber-300 dark:text-amber-200 mb-8 shadow-sm">
           <span className="pulsing-gold-dot" aria-hidden="true" />
-          <span>BISU Bilar Celebration — October 7, 2026</span>
+          <span>BISU Bilar Teachers Day Celebration 2K26</span>
         </div>
 
         {/* Hero Title: Split into two lines, each line split into individual character spans */}
@@ -97,7 +97,7 @@ export function GreetingAnimation() {
 
         {/* Subheading with Staggered Fade Up */}
         <p className="fade-up-subheading text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-300 max-w-2xl font-light leading-relaxed mb-10">
-          To the inspiring mentors, professors, and instructors of Bohol Island State University (Bilar Campus) — thank you for shaping our minds, guiding our paths, and nurturing our futures.
+          To the inspiring mentors, professors, instructors and staff of Bohol Island State University (Bilar Campus) — thank you for shaping our minds, guiding our paths, and nurturing our futures.
         </p>
 
         {/* Two CTAs: Primary & Secondary with Lift, Scale & Ripple Motion */}

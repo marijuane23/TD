@@ -24,7 +24,7 @@ export function TeacherCard({
 
   const cardContent = (
     <div
-      className={`relative glass-card glass-card-hover rounded-2xl p-5 flex flex-col items-center text-center h-full group transition-all ${
+      className={`relative glass-card glass-card-hover rounded-2xl p-5 flex flex-col items-center text-center h-full group transition-all duration-300 border border-slate-300/60 dark:border-slate-700/60 hover:border-bisu-gold dark:hover:border-bisu-gold ${
         isSelected ? 'ring-2 ring-bisu-gold shadow-lg shadow-bisu-gold/15 bg-bisu-gold/5 dark:bg-bisu-gold/10' : ''
       }`}
     >
@@ -120,7 +120,7 @@ export function TeacherCard({
   }
 
   return (
-    <Link to={`/teachers/${teacher.slug}`} className="h-full focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 rounded-2xl">
+    <Link to={`/teachers/${teacher.slug}`} className="h-full block focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 rounded-2xl">
       {cardContent}
     </Link>
   );

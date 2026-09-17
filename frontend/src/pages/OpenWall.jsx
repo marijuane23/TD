@@ -20,7 +20,7 @@ export function OpenWall() {
         <div className="pt-1 flex items-center justify-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400 font-medium">
             <MousePointerClick className="w-3.5 h-3.5 text-bisu-blue-600 dark:text-bisu-gold" />
-            <span>Click & drag cards to move • Scroll to zoom</span>
+            <span>Drag to rotate sphere • Tap card to highlight • Use + / − to zoom</span>
           </div>
         </div>
       </div>

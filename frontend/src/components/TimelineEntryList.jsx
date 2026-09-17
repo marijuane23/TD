@@ -21,7 +21,7 @@ export function TimelineEntryList({ messages = [], activeFilter = 'all' }) {
     }
 
     return (
-      <div className="glass-card rounded-2xl p-12 text-center">
+      <div className="glass-card rounded-2xl p-12 text-center border border-slate-300/60 dark:border-slate-700/60">
         <MessageSquare className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
         <h4 className="text-base font-bold text-slate-700 dark:text-slate-200 mb-1">
           {emptyTitle}
@@ -49,7 +49,7 @@ export function TimelineEntryList({ messages = [], activeFilter = 'all' }) {
         return (
           <article
             key={item.id}
-            className="glass-card rounded-2xl p-5 sm:p-6 transition-all hover:shadow-lg space-y-4"
+            className="glass-card rounded-2xl p-5 sm:p-6 transition-all hover:shadow-lg space-y-4 border border-slate-300/60 dark:border-slate-700/60"
           >
             {/* Header: Sender & Date */}
             <div className="flex items-center justify-between">

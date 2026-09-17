@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import bisuLogo from '../assets/bisubilar2009.png';
-import { triggerConfettiBurst } from './ConfettiCanvas.jsx';
+import { triggerCelebration, triggerConfettiBurst } from './ConfettiCanvas.jsx';
 import { createRipple } from '../utils/ripple.js';
 import { Sun, Moon, Menu, X, Users, LogIn, LayoutDashboard, PartyPopper, MessageSquare } from 'lucide-react';
 
@@ -18,14 +18,7 @@ export function Header() {
   const handleCelebrateClick = (e) => {
     createRipple(e);
     const rect = e.currentTarget.getBoundingClientRect();
-    triggerConfettiBurst({
-      x: rect.left + rect.width / 2,
-      y: rect.bottom + 5,
-      count: 75,
-      spread: 90,
-      velocity: 16,
-      angle: -90,
-    });
+    triggerCelebration(rect.left + rect.width / 2, rect.bottom + 5);
   };
 
   const handleThemeClick = (e) => {
@@ -54,7 +47,7 @@ export function Header() {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-              Teacher's Day Celebration
+              Teacher's Day Celebration 2k26
             </p>
           </div>
         </Link>
