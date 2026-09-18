@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TimelineMediaActions from './TimelineMediaActions.jsx';
 import { User, Calendar, MessageSquare, Play, X } from 'lucide-react';
+import { resolveMediaUrl } from '../api/client.js';
 
 export function TimelineEntryList({ messages = [], activeFilter = 'all' }) {
   const [lightboxImage, setLightboxImage] = useState(null);
@@ -83,17 +84,17 @@ export function TimelineEntryList({ messages = [], activeFilter = 'all' }) {
                       controls
                       playsInline
                       preload="metadata"
-                      src={item.media_url}
+                      src={resolveMediaUrl(item.media_url)}
                       className="w-full h-full object-contain"
                     />
                   </div>
                 ) : (
                   <div
-                    onClick={() => setLightboxImage(item.media_url)}
+                    onClick={() => setLightboxImage(resolveMediaUrl(item.media_url))}
                     className="relative cursor-pointer group overflow-hidden max-h-[420px] flex items-center justify-center bg-slate-100 dark:bg-slate-950"
                   >
                     <img
-                      src={item.media_url}
+                      src={resolveMediaUrl(item.media_url)}
                       alt="Tribute attachment"
                       loading="lazy"
                       className="max-h-[420px] w-auto object-contain transition-transform duration-300 group-hover:scale-[1.02]"
