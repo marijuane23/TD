@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import api from '../api/client.js';
+import api, { resolveMediaUrl } from '../api/client.js';
 import { useTheme } from '../context/ThemeContext.jsx';
 import WallSubmissionPanel from './WallSubmissionPanel.jsx';
 import {
@@ -117,13 +117,21 @@ export function WallCanvas() {
             to: item.teacher_name || item.to || extractRecipient(item.message_text),
             msg: item.message_text || '',
             from: item.sender_name || 'Anonymous',
-            image_url: item.image_url || null,
+            image_url: resolveMediaUrl(item.image_url) || null,
             teacher_id: item.teacher_id || null,
             teacher_name: item.teacher_name || null,
             teacher_slug: item.teacher_slug || null,
             created_at: item.created_at || null,
           }));
           setGreetings(apiFormatted);
+
+          // Preload tribute images in background so they are warm in browser memory
+          apiFormatted.forEach(item => {
+            if (item.image_url) {
+              const img = new Image();
+              img.src = item.image_url;
+            }
+          });
         }
       } catch (err) {
         console.error('Failed to load wall greetings from API:', err);
@@ -142,7 +150,7 @@ export function WallCanvas() {
       to: newGreeting.teacher_name || newGreeting.to || extractRecipient(newGreeting.message_text) || 'Faculty',
       msg: newGreeting.message_text || '',
       from: newGreeting.sender_name || 'Anonymous',
-      image_url: newGreeting.image_url || null,
+      image_url: resolveMediaUrl(newGreeting.image_url) || null,
       teacher_id: newGreeting.teacher_id || null,
       teacher_name: newGreeting.teacher_name || null,
       teacher_slug: newGreeting.teacher_slug || null,
@@ -613,7 +621,7 @@ export function WallCanvas() {
                   <div className="gc-split pointer-events-none">
                     <div className="gc-img-side">
                       <img
-                        src={g.image_url}
+                        src={resolveMediaUrl(g.image_url)}
                         alt="Tribute photo"
                         className="gc-img-thumb"
                         loading="lazy"
@@ -731,7 +739,7 @@ export function WallCanvas() {
             {focusedCard.image_url && (
               <div className="mb-4 rounded-2xl overflow-hidden max-h-[300px] border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 flex items-center justify-center shadow-inner">
                 <img
-                  src={focusedCard.image_url}
+                  src={resolveMediaUrl(focusedCard.image_url)}
                   alt="Greeting Tribute Photo"
                   className="w-full max-h-[300px] object-contain rounded-2xl"
                 />

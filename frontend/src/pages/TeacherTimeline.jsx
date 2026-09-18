@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import QRCode from 'qrcode';
-import api, { API_BASE_URL } from '../api/client.js';
+import api, { API_BASE_URL, resolveMediaUrl } from '../api/client.js';
 import TimelineEntryList from '../components/TimelineEntryList.jsx';
 import TimelineSubmissionForm from '../components/TimelineSubmissionForm.jsx';
 import EditTeacherPhotoModal from '../components/EditTeacherPhotoModal.jsx';
@@ -281,7 +281,7 @@ export function TeacherTimeline() {
     const formatted = {
       ...newMessage,
       media_url:
-        newMessage.media_url ||
+        resolveMediaUrl(newMessage.media_url) ||
         (newMessage.media_id ? `${API_BASE_URL}/media/${newMessage.media_id}` : null),
       created_at: newMessage.created_at || new Date().toISOString(),
     };
@@ -422,7 +422,7 @@ export function TeacherTimeline() {
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center text-3xl font-black border-2 border-bisu-gold/60 shadow-lg overflow-hidden relative">
               {teacher.photo_url ? (
                 <img
-                  src={teacher.photo_url}
+                  src={resolveMediaUrl(teacher.photo_url)}
                   alt={teacher.name}
                   className="w-full h-full object-cover rounded-2xl transition-transform duration-300 group-hover:scale-105"
                 />
