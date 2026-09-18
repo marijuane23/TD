@@ -126,7 +126,9 @@ export function WallCard({ greeting, canvasWidth = 4200, canvasHeight = 3000 }) 
         zIndex,
         touchAction: 'none',
       }}
-      className={`wall-card-draggable w-[265px] sm:w-[280px] p-3.5 sm:p-4 rounded-2xl border select-none transition-shadow duration-150 ${
+      className={`wall-card-draggable ${
+        greeting.image_url ? 'w-[310px] sm:w-[340px]' : 'w-[265px] sm:w-[280px]'
+      } p-3.5 sm:p-4 rounded-2xl border select-none transition-shadow duration-150 ${
         initial.theme.bg
       } ${initial.theme.border} ${
         isDragging
@@ -135,33 +137,86 @@ export function WallCard({ greeting, canvasWidth = 4200, canvasHeight = 3000 }) 
       }`}
       title="Tap / click and drag to move greeting across the wall"
     >
-      {/* Top Header: Sender Name, Drag Handle, Badge */}
-      <div className="flex items-center justify-between mb-2 pointer-events-none">
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-0">
-          <GripVertical className="w-3.5 h-3.5 text-slate-400 opacity-60 group-hover:opacity-100 shrink-0" />
-          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-          <span className="truncate max-w-[120px] sm:max-w-[140px]">{greeting.sender_name || 'Anonymous'}</span>
+      {greeting.image_url ? (
+        <div className="flex gap-3 pointer-events-none">
+          {/* Left Side: Attached Image */}
+          <div className="w-20 h-20 sm:w-22 sm:h-22 rounded-xl overflow-hidden shrink-0 bg-black/20 border border-white/10 shadow-sm">
+            <img
+              src={greeting.image_url}
+              alt="Greeting attachment"
+              className="w-full h-full object-cover"
+              loading="lazy"
+            />
+          </div>
+
+          {/* Right Side: Header, Concatenated Message, Footer */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-0">
+                <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                <span className="truncate max-w-[110px]">{greeting.sender_name || 'Anonymous'}</span>
+              </div>
+              <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${initial.theme.badge}`}>
+                #{greeting.id}
+              </span>
+            </div>
+
+            {greeting.teacher_name && (
+              <div className="text-[10px] font-bold text-bisu-gold truncate mb-1">
+                To {greeting.teacher_name}
+              </div>
+            )}
+
+            <p className="text-xs text-slate-800 dark:text-slate-200 font-medium leading-snug line-clamp-2 break-words">
+              {greeting.message_text.length > 80
+                ? `${greeting.message_text.slice(0, 80).trim()}...`
+                : greeting.message_text}
+            </p>
+
+            <div className="flex items-center justify-between text-[10px] text-slate-500 dark:text-slate-400 pt-1.5 border-t border-slate-200 dark:border-slate-800/50 mt-1">
+              <span>Wall</span>
+              <span>{formattedDate}</span>
+            </div>
+          </div>
         </div>
-        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${initial.theme.badge}`}>
-          #{greeting.id}
-        </span>
-      </div>
+      ) : (
+        <>
+          {/* Top Header: Sender Name, Drag Handle, Badge */}
+          <div className="flex items-center justify-between mb-2 pointer-events-none">
+            <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 min-w-0">
+              <GripVertical className="w-3.5 h-3.5 text-slate-400 opacity-60 group-hover:opacity-100 shrink-0" />
+              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+              <span className="truncate max-w-[120px] sm:max-w-[140px]">{greeting.sender_name || 'Anonymous'}</span>
+            </div>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${initial.theme.badge}`}>
+              #{greeting.id}
+            </span>
+          </div>
 
-      {/* Message Text */}
-      <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed mb-3 whitespace-pre-wrap break-words pointer-events-none">
-        {greeting.message_text}
-      </p>
+          {greeting.teacher_name && (
+            <div className="text-[11px] font-bold text-bisu-gold truncate mb-1 pointer-events-none">
+              To {greeting.teacher_name}
+            </div>
+          )}
 
-      {/* Footer / Date */}
-      <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/50 pointer-events-none">
-        <span className="flex items-center gap-1">
-          <span>Public Wall</span>
-          {isDragging && <span className="text-bisu-gold font-bold">• Moving</span>}
-        </span>
-        <span>{formattedDate}</span>
-      </div>
+          {/* Message Text */}
+          <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed mb-3 whitespace-pre-wrap break-words pointer-events-none">
+            {greeting.message_text}
+          </p>
+
+          {/* Footer / Date */}
+          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/50 pointer-events-none">
+            <span className="flex items-center gap-1">
+              <span>Public Wall</span>
+              {isDragging && <span className="text-bisu-gold font-bold">• Moving</span>}
+            </span>
+            <span>{formattedDate}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
 
 export default WallCard;
