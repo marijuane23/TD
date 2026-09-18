@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import QRCode from 'qrcode';
 import api, { API_BASE_URL } from '../api/client.js';
 import TimelineEntryList from '../components/TimelineEntryList.jsx';
 import TimelineSubmissionForm from '../components/TimelineSubmissionForm.jsx';
 import EditTeacherPhotoModal from '../components/EditTeacherPhotoModal.jsx';
+import KeepsakeExportModal from '../components/KeepsakeExportModal.jsx';
 import {
   ArrowLeft,
   Award,
@@ -40,6 +41,9 @@ export function TeacherTimeline() {
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+
+  // Bulk Keepsake Export Modal State
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   // Timeline filtering & sorting states
   const [activeFilter, setActiveFilter] = useState('all'); // 'all' | 'messages' | 'photos' | 'videos'
@@ -489,6 +493,16 @@ export function TeacherTimeline() {
                 <Heart className="w-4 h-4 fill-rose-500" />
                 <span>Happy Teacher's Day!</span>
               </span>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setIsExportModalOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-bisu-blue-100 dark:bg-bisu-blue-900/40 text-bisu-blue-700 dark:text-bisu-gold hover:bg-bisu-blue-200 dark:hover:bg-bisu-blue-800/60 font-bold transition-all border border-bisu-blue-200 dark:border-bisu-blue-800 cursor-pointer shadow-sm hover:scale-[1.02]"
+                title="Export all messages and photos as a single PDF album or collage keepsake"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-bisu-gold" />
+                <span>Export Keepsake (PDF / Collage)</span>
+              </button>
             </div>
           </div>
         </div>
@@ -570,23 +584,35 @@ export function TeacherTimeline() {
                 </p>
               </div>
 
-              {/* Sort Selector Dropdown */}
-              <div className="flex items-center gap-2 self-start sm:self-auto">
-                <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
-                  <ArrowUpDown className="w-3.5 h-3.5" />
-                  <span className="hidden xs:inline">Sort:</span>
-                </span>
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer shadow-sm"
+              {/* Actions & Sort Selector */}
+              <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setIsExportModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-bisu-blue-700 hover:bg-bisu-blue-800 text-white text-xs font-bold shadow-sm transition-all hover:scale-[1.02] cursor-pointer"
+                  title="Bulk download all tributes as PDF album or photo collage"
                 >
-                  <option value="newest">Newest first</option>
-                  <option value="oldest">Oldest first</option>
-                  <option value="photos_first">Photos first</option>
-                  <option value="videos_first">Videos first</option>
-                  <option value="messages_first">Messages (Text) first</option>
-                </select>
+                  <Download className="w-3.5 h-3.5 text-bisu-gold" />
+                  <span>Export Keepsake</span>
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                    <ArrowUpDown className="w-3.5 h-3.5" />
+                    <span className="hidden xs:inline">Sort:</span>
+                  </span>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-semibold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer shadow-sm"
+                  >
+                    <option value="newest">Newest first</option>
+                    <option value="oldest">Oldest first</option>
+                    <option value="photos_first">Photos first</option>
+                    <option value="videos_first">Videos first</option>
+                    <option value="messages_first">Messages (Text) first</option>
+                  </select>
+                </div>
               </div>
             </div>
 
@@ -786,6 +812,14 @@ export function TeacherTimeline() {
           </div>
         </div>
       )}
+
+      {/* Bulk Keepsake Export Modal (PDF Album & Image Collage) */}
+      <KeepsakeExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        teacher={teacher}
+        messages={messages}
+      />
     </div>
   );
 }
