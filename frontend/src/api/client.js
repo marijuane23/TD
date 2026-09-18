@@ -125,10 +125,15 @@ export const api = {
     return request(`/wall?${params.toString()}`);
   },
 
-  async postWallGreeting({ sender_name, message_text, website = '' }) {
+  async getTeachersDropdown() {
+    return request('/teachers/dropdown');
+  },
+
+  async postWallGreeting(payload) {
+    const isFormData = payload instanceof FormData;
     return request('/wall', {
       method: 'POST',
-      body: JSON.stringify({ sender_name, message_text, website }),
+      body: isFormData ? payload : JSON.stringify(payload),
     });
   },
 

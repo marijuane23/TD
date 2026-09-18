@@ -601,6 +601,73 @@
   box-shadow: 0 10px 25px -8px rgba(15, 23, 42, 0.12), 0 3px 10px -3px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
+/* Horizontal Split Card Layout (Image on Left, Greeting on Right) */
+.gcard.gcard-has-image {
+  width: 290px;
+  padding: 0.65rem 0.75rem;
+}
+
+.gc-split {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.gc-img-side {
+  width: 82px;
+  height: 82px;
+  flex: none;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+[data-theme='light'] .gc-img-side {
+  background: rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+
+.gc-img-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.gc-text-side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gcard.gcard-has-image .gc-top {
+  margin-bottom: 0.25rem;
+}
+
+.gcard.gcard-has-image .gc-msg {
+  font-size: 0.75rem;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.25rem;
+}
+
+.gcard.gcard-has-image .gc-bot {
+  margin-top: 0.2rem;
+  font-size: 0.65rem;
+}
+
+
 @media (max-width: 640px) {
   .stage-wrap {
     height: clamp(380px, 58vh, 520px);
@@ -632,7 +699,17 @@
     margin-top: 0.35rem;
     font-size: 0.6rem;
   }
+  .gcard.gcard-has-image {
+    width: 230px;
+    padding: 0.5rem 0.6rem;
+  }
+  .gcard.gcard-has-image .gc-img-side {
+    width: 68px;
+    height: 68px;
+    border-radius: 9px;
+  }
 }
+
 
 .globe-toolbar {
   position: relative;

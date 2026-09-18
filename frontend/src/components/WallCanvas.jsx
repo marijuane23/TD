@@ -39,6 +39,12 @@ function extractRecipient(msg) {
   return 'Faculty';
 }
 
+function truncateGreeting(msg, maxChars = 90) {
+  if (!msg) return '';
+  if (msg.length <= maxChars) return msg;
+  return msg.slice(0, maxChars).trim() + '...';
+}
+
 export function WallCanvas() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
@@ -108,9 +114,14 @@ export function WallCanvas() {
         if (isMounted && res.items) {
           const apiFormatted = res.items.map((item, idx) => ({
             id: item.id || `api-${idx}`,
-            to: item.to || extractRecipient(item.message_text),
+            to: item.teacher_name || item.to || extractRecipient(item.message_text),
             msg: item.message_text || '',
             from: item.sender_name || 'Anonymous',
+            image_url: item.image_url || null,
+            teacher_id: item.teacher_id || null,
+            teacher_name: item.teacher_name || null,
+            teacher_slug: item.teacher_slug || null,
+            created_at: item.created_at || null,
           }));
           setGreetings(apiFormatted);
         }
@@ -128,9 +139,14 @@ export function WallCanvas() {
   const handleGreetingSubmitted = (newGreeting) => {
     const formatted = {
       id: newGreeting.id || `custom-${Date.now()}`,
-      to: newGreeting.to || extractRecipient(newGreeting.message_text) || 'Faculty',
+      to: newGreeting.teacher_name || newGreeting.to || extractRecipient(newGreeting.message_text) || 'Faculty',
       msg: newGreeting.message_text || '',
       from: newGreeting.sender_name || 'Anonymous',
+      image_url: newGreeting.image_url || null,
+      teacher_id: newGreeting.teacher_id || null,
+      teacher_name: newGreeting.teacher_name || null,
+      teacher_slug: newGreeting.teacher_slug || null,
+      created_at: newGreeting.created_at || new Date().toISOString(),
     };
     setGreetings(prev => [formatted, ...prev]);
   };
@@ -578,6 +594,7 @@ export function WallCanvas() {
         <div id="stage" ref={stageRef}>
           {filteredGreetings.map((g, i) => {
             const pal = PALETTE[i % PALETTE.length];
+            const hasImage = Boolean(g.image_url);
             return (
               <div
                 key={g.id}
@@ -585,24 +602,54 @@ export function WallCanvas() {
                   if (el) cardElementsRef.current.set(g.id, el);
                   else cardElementsRef.current.delete(g.id);
                 }}
-                className="gcard"
+                className={`gcard ${hasImage ? 'gcard-has-image' : ''}`}
                 style={{
                   '--card-glow': pal.glow,
                   background: isDark ? pal.bgDark : pal.bgLight,
                   borderColor: isDark ? 'rgba(255,255,255,0.18)' : pal.borderLight,
                 }}
               >
-                <div className="gc-top pointer-events-none">
-                  <div className="gc-av" style={{ background: pal.c }}>
-                    {getInitials(g.to) || <GraduationCap className="w-3.5 h-3.5 text-slate-900" />}
+                {hasImage ? (
+                  <div className="gc-split pointer-events-none">
+                    <div className="gc-img-side">
+                      <img
+                        src={g.image_url}
+                        alt="Tribute photo"
+                        className="gc-img-thumb"
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="gc-text-side">
+                      <div className="gc-top">
+                        <div className="gc-av" style={{ background: pal.c }}>
+                          {getInitials(g.to) || <GraduationCap className="w-3.5 h-3.5 text-slate-900" />}
+                        </div>
+                        <div className="gc-name">To {g.to}</div>
+                      </div>
+                      <div className="gc-msg">
+                        {truncateGreeting(g.msg, 90)}
+                      </div>
+                      <div className="gc-bot">
+                        <span className="truncate max-w-[80px]">{g.from}</span>
+                        <span>Wall</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="gc-name">To {g.to}</div>
-                </div>
-                <div className="gc-msg pointer-events-none">{g.msg}</div>
-                <div className="gc-bot pointer-events-none">
-                  <span>{g.from}</span>
-                  <span>Public Wall</span>
-                </div>
+                ) : (
+                  <>
+                    <div className="gc-top pointer-events-none">
+                      <div className="gc-av" style={{ background: pal.c }}>
+                        {getInitials(g.to) || <GraduationCap className="w-3.5 h-3.5 text-slate-900" />}
+                      </div>
+                      <div className="gc-name">To {g.to}</div>
+                    </div>
+                    <div className="gc-msg pointer-events-none">{g.msg}</div>
+                    <div className="gc-bot pointer-events-none">
+                      <span>{g.from}</span>
+                      <span>Public Wall</span>
+                    </div>
+                  </>
+                )}
               </div>
             );
           })}
@@ -680,12 +727,34 @@ export function WallCanvas() {
               </div>
             </div>
 
+            {/* Attached Photo Display if present */}
+            {focusedCard.image_url && (
+              <div className="mb-4 rounded-2xl overflow-hidden max-h-[300px] border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 flex items-center justify-center shadow-inner">
+                <img
+                  src={focusedCard.image_url}
+                  alt="Greeting Tribute Photo"
+                  className="w-full max-h-[300px] object-contain rounded-2xl"
+                />
+              </div>
+            )}
+
             {/* Full Greeting Message */}
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 mb-4 max-h-[50vh] overflow-y-auto">
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 mb-4 max-h-[38vh] overflow-y-auto">
               <p className="text-sm sm:text-base text-slate-800 dark:text-slate-100 leading-relaxed whitespace-pre-wrap select-text font-normal">
                 {focusedCard.msg}
               </p>
             </div>
+
+            {/* Teacher Timeline Link if dedicated to a specific teacher */}
+            {focusedCard.teacher_slug && (
+              <a
+                href={`/teachers/${focusedCard.teacher_slug}`}
+                className="mb-4 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-bisu-gold/15 hover:bg-bisu-gold/25 border border-bisu-gold/30 text-amber-900 dark:text-bisu-gold text-xs font-bold transition-all shadow-sm group"
+              >
+                <GraduationCap className="w-4 h-4 transition-transform group-hover:scale-110" />
+                <span>Visit {focusedCard.to}'s Personal Timeline →</span>
+              </a>
+            )}
 
             {/* Sender & Footer */}
             <div className="flex items-center justify-between pt-1 text-xs text-slate-500 dark:text-slate-400">
