@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ShieldAlert, Award, Trash2 } from 'lucide-react';
+import { resolveMediaUrl } from '../api/client.js';
 
 export function TeacherCard({
   teacher,
@@ -66,7 +67,7 @@ export function TeacherCard({
       <div className="relative mb-4 mt-1">
         {teacher.photo_url ? (
           <img
-            src={teacher.photo_url}
+            src={resolveMediaUrl(teacher.photo_url)}
             alt={teacher.name}
             className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-bisu-gold shadow-md"
           />
