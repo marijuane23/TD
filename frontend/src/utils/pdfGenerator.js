@@ -8,6 +8,21 @@
 
 import { jsPDF } from 'jspdf';
 import { loadImage } from './collageGenerator.js';
+import { API_BASE_URL } from '../api/client.js';
+
+/**
+ * Sanitizes text for jsPDF Standard Fonts (Helvetica)
+ * Preserves Latin-1 characters (like ñ, accented vowels), converts smart quotes, and strips emojis.
+ */
+const sanitizeForPdf = (str) => {
+  if (!str) return '';
+  return String(str)
+    .replace(/[\u2018\u2019]/g, "'") // smart single quotes
+    .replace(/[\u201C\u201D]/g, '"') // smart double quotes
+    .replace(/[\u2013\u2014]/g, '-') // en-dash, em-dash
+    .replace(/\u2026/g, '...') // ellipsis
+    .replace(/[^\x20-\x7E\u00A0-\u00FF\n\r\t]/g, ''); // keep standard ASCII + Latin-1, remove emojis
+};
 
 /**
  * Converts an image URL into a base64 JPEG data URL with dimensions.
@@ -64,8 +79,9 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
   // Filter out pure video messages; keep messages with photos or text
   const eligibleMessages = messages.filter((m) => {
     const isVideo = m.media_type === 'video' || (m.media_mime && m.media_mime.startsWith('video/'));
-    // If it has video but no text, exclude
-    if (isVideo && !m.message) return false;
+    const hasText = Boolean((m.message_text || m.message || '').trim());
+    // If it has video but no text, exclude from static keepsake PDF
+    if (isVideo && !hasText) return false;
     return true;
   });
 
@@ -74,6 +90,7 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
       (m.media_type === 'image' || (m.media_mime && m.media_mime.startsWith('image/'))) &&
       (m.media_url || m.media_id)
   );
+
 
   const totalSteps = 2 + photoMessages.length + eligibleMessages.length;
   let completedSteps = 0;
@@ -258,7 +275,7 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
   const photoCache = new Map();
   for (let i = 0; i < photoMessages.length; i++) {
     const m = photoMessages[i];
-    const url = m.media_url;
+    const url = m.media_url || (m.media_id ? `${API_BASE_URL}/media/${m.media_id}` : null);
     if (url && !photoCache.has(url)) {
       updateProgress(`Loading photo ${i + 1} of ${photoMessages.length}...`);
       const imgData = await urlToDataUrl(url);
@@ -271,7 +288,13 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
     const m = eligibleMessages[i];
     updateProgress(`Composing tribute ${i + 1} of ${eligibleMessages.length}...`);
 
-    const author = m.author_name || 'Grateful Student';
+    const rawAuthor = (m.sender_name || m.author_name || '').trim();
+    const author = sanitizeForPdf(
+      rawAuthor && rawAuthor.toLowerCase() !== 'anonymous'
+        ? rawAuthor
+        : (rawAuthor || 'Anonymous Student')
+    );
+
     const dateStr = m.created_at
       ? new Date(m.created_at).toLocaleDateString(undefined, {
           month: 'short',
@@ -280,20 +303,21 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
         })
       : '';
 
-    const text = m.message || '';
+    const text = sanitizeForPdf((m.message_text || m.message || '').trim());
     const textLines = text ? doc.splitTextToSize(text, contentWidth - 16) : [];
     const textHeight = textLines.length * 4.4;
 
     // Check photo attachment
+    const photoUrl = m.media_url || (m.media_id ? `${API_BASE_URL}/media/${m.media_id}` : null);
     const hasPhoto =
       (m.media_type === 'image' || (m.media_mime && m.media_mime.startsWith('image/'))) &&
-      m.media_url &&
-      photoCache.has(m.media_url);
+      photoUrl &&
+      photoCache.has(photoUrl);
 
     let photoDrawW = 0;
     let photoDrawH = 0;
     if (hasPhoto) {
-      const cached = photoCache.get(m.media_url);
+      const cached = photoCache.get(photoUrl);
       const aspect = cached.width / cached.height;
       const maxPhotoW = contentWidth - 20;
       const maxPhotoH = 65; // mm
@@ -364,8 +388,9 @@ export const generateKeepsakePdf = async ({ teacher, messages = [], onProgress =
 
     // Embedded photo
     if (hasPhoto) {
-      const cached = photoCache.get(m.media_url);
+      const cached = photoCache.get(photoUrl);
       const photoX = (pageWidth - photoDrawW) / 2;
+
 
       // Photo border
       doc.setDrawColor(203, 213, 225);
