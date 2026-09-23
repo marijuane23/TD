@@ -12,6 +12,9 @@ import {
   Minus,
   RotateCcw,
   GraduationCap,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 const PALETTE = [
@@ -53,6 +56,8 @@ export function WallCanvas() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [focusedCard, setFocusedCard] = useState(null);
+  const [spotlightSlides, setSpotlightSlides] = useState([]);
+  const [slideIndex, setSlideIndex] = useState(0);
   const focusedCardRef = useRef(null);
 
   const [shuffleOffset, setShuffleOffset] = useState(0);
@@ -92,6 +97,35 @@ export function WallCanvas() {
       searchInputRef.current.focus();
     }
   }, [isSearchOpen]);
+
+  // Keyboard navigation for Spotlight Modal (Left/Right arrows and Escape)
+  useEffect(() => {
+    if (!focusedCard) return;
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setFocusedCard(null);
+        setSpotlightSlides([]);
+      } else if (e.key === 'ArrowLeft' && spotlightSlides.length > 1) {
+        e.preventDefault();
+        setSlideIndex((prev) => {
+          const nextIdx = prev > 0 ? prev - 1 : spotlightSlides.length - 1;
+          setFocusedCard(spotlightSlides[nextIdx]);
+          return nextIdx;
+        });
+      } else if (e.key === 'ArrowRight' && spotlightSlides.length > 1) {
+        e.preventDefault();
+        setSlideIndex((prev) => {
+          const nextIdx = prev < spotlightSlides.length - 1 ? prev + 1 : 0;
+          setFocusedCard(spotlightSlides[nextIdx]);
+          return nextIdx;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [focusedCard, spotlightSlides]);
 
   // Escape key handler to close focused card or search
   useEffect(() => {
@@ -508,8 +542,46 @@ export function WallCanvas() {
     if (idx !== -1) {
       const cardData = greetings[idx];
       const pal = PALETTE[idx % PALETTE.length];
-      setFocusedCard({ ...cardData, pal });
+      const card = { ...cardData, pal };
+      setSpotlightSlides([card]);
+      setSlideIndex(0);
+      setFocusedCard(card);
     }
+  };
+
+  // Pick up to 5 random greetings to display in the Spotlight Modal
+  const handlePickRandomGreetings = () => {
+    if (!greetings || greetings.length === 0) return;
+
+    const pool = [...greetings];
+    // Random shuffle
+    const shuffled = pool.sort(() => 0.5 - Math.random());
+    const count = Math.min(5, shuffled.length);
+    const picked = shuffled.slice(0, count).map((cardData) => {
+      const idx = greetings.findIndex(g => g.id === cardData.id);
+      const pal = PALETTE[(idx >= 0 ? idx : 0) % PALETTE.length];
+      return { ...cardData, pal };
+    });
+
+    if (picked.length > 0) {
+      setSpotlightSlides(picked);
+      setSlideIndex(0);
+      setFocusedCard(picked[0]);
+    }
+  };
+
+  const handlePrevSlide = () => {
+    if (spotlightSlides.length <= 1) return;
+    const nextIdx = slideIndex > 0 ? slideIndex - 1 : spotlightSlides.length - 1;
+    setSlideIndex(nextIdx);
+    setFocusedCard(spotlightSlides[nextIdx]);
+  };
+
+  const handleNextSlide = () => {
+    if (spotlightSlides.length <= 1) return;
+    const nextIdx = slideIndex < spotlightSlides.length - 1 ? slideIndex + 1 : 0;
+    setSlideIndex(nextIdx);
+    setFocusedCard(spotlightSlides[nextIdx]);
   };
 
   return (
@@ -524,6 +596,16 @@ export function WallCanvas() {
               {totalCount}
             </b>
           </span>
+
+          {/* Pick Random Greetings: Icon Only (leftside of search icon) */}
+          <button
+            onClick={handlePickRandomGreetings}
+            className="globe-zbtn text-celebrate-gold hover:text-amber-400 hover:scale-105 active:scale-95 transition-all"
+            aria-label="Pick 5 random greetings"
+            title="Pick 5 Random Greetings"
+          >
+            <Sparkles className="w-4 h-4" />
+          </button>
 
           {/* Quick Search: Icon Only until clicked */}
           {!isSearchOpen && !searchQuery ? (
@@ -695,27 +777,94 @@ export function WallCanvas() {
       {focusedCard && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 dark:bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={() => setFocusedCard(null)}
+          onClick={() => {
+            setFocusedCard(null);
+            setSpotlightSlides([]);
+          }}
         >
-          <div
-            className="relative w-full max-w-md rounded-3xl p-6 sm:p-7 shadow-2xl border transition-all animate-in zoom-in-95 duration-200"
-            style={{
-              background: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
-              borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)',
-              boxShadow: isDark
-                ? `0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px -10px ${focusedCard.pal?.glow || '#3b82f6'}`
-                : '0 25px 50px -12px rgba(15, 23, 42, 0.2), 0 0 35px -10px rgba(59, 130, 246, 0.25)',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setFocusedCard(null)}
-              className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-              title="Close and resume orbiting"
+          <div className="relative w-full max-w-md">
+            {/* Left Slide Arrow (for slideshow mode) */}
+            {spotlightSlides.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePrevSlide();
+                }}
+                className="absolute -left-3 sm:-left-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-800 dark:text-white transition-all hover:scale-110 active:scale-95 z-20 cursor-pointer"
+                title="Previous greeting (Left Arrow)"
+                aria-label="Previous greeting"
+              >
+                <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700 dark:text-slate-200" />
+              </button>
+            )}
+
+            {/* Right Slide Arrow (for slideshow mode) */}
+            {spotlightSlides.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleNextSlide();
+                }}
+                className="absolute -right-3 sm:-right-6 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xl flex items-center justify-center text-slate-800 dark:text-white transition-all hover:scale-110 active:scale-95 z-20 cursor-pointer"
+                title="Next greeting (Right Arrow)"
+                aria-label="Next greeting"
+              >
+                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-slate-700 dark:text-slate-200" />
+              </button>
+            )}
+
+            <div
+              className="relative w-full rounded-3xl p-6 sm:p-7 shadow-2xl border transition-all animate-in zoom-in-95 duration-200"
+              style={{
+                background: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.98)',
+                borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : 'rgba(15, 23, 42, 0.12)',
+                boxShadow: isDark
+                  ? `0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 45px -10px ${focusedCard.pal?.glow || '#3b82f6'}`
+                  : '0 25px 50px -12px rgba(15, 23, 42, 0.2), 0 0 35px -10px rgba(59, 130, 246, 0.25)',
+              }}
+              onClick={(e) => e.stopPropagation()}
             >
-              <X className="w-5 h-5" />
-            </button>
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setFocusedCard(null);
+                  setSpotlightSlides([]);
+                }}
+                className="absolute top-4 right-4 p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors z-10"
+                title="Close and resume orbiting"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Slide Navigation Header if Multiple Greetings */}
+              {spotlightSlides.length > 1 && (
+                <div className="flex items-center justify-between gap-2 mb-3.5 pb-2.5 border-b border-slate-200/60 dark:border-slate-800/80 pr-8">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-celebrate-gold/15 border border-celebrate-gold/30 text-amber-900 dark:text-bisu-gold text-[10px] font-extrabold uppercase tracking-wider">
+                    <Sparkles className="w-3 h-3 text-bisu-gold" />
+                    <span>Random Spotlight • {slideIndex + 1} of {spotlightSlides.length}</span>
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    {spotlightSlides.map((_, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setSlideIndex(idx);
+                          setFocusedCard(spotlightSlides[idx]);
+                        }}
+                        className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                          idx === slideIndex
+                            ? 'w-4 bg-celebrate-gold'
+                            : 'w-1.5 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400'
+                        }`}
+                        title={`Go to greeting ${idx + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
 
             {/* Recipient & Avatar */}
             <div className="flex items-center gap-3 mb-4 pr-8">
@@ -764,17 +913,18 @@ export function WallCanvas() {
               </a>
             )}
 
-            {/* Sender & Footer */}
-            <div className="flex items-center justify-between pt-1 text-xs text-slate-500 dark:text-slate-400">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <span>From:</span>
-                <strong className="text-slate-900 dark:text-white font-bold truncate">
-                  {focusedCard.from}
-                </strong>
+              {/* Sender & Footer */}
+              <div className="flex items-center justify-between pt-1 text-xs text-slate-500 dark:text-slate-400">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span>From:</span>
+                  <strong className="text-slate-900 dark:text-white font-bold truncate">
+                    {focusedCard.from}
+                  </strong>
+                </div>
+                <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 shrink-0">
+                  Public Wall
+                </span>
               </div>
-              <span className="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-300 shrink-0">
-                Public Wall
-              </span>
             </div>
           </div>
         </div>

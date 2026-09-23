@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import api from '../api/client.js';
-import { UserPlus, X, AlertCircle, UploadCloud, Image as ImageIcon, Camera, Trash2, Loader2 } from 'lucide-react';
+import { UserPlus, Briefcase, X, AlertCircle, UploadCloud, Image as ImageIcon, Camera, Trash2, Loader2 } from 'lucide-react';
 
-export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
+export function AddTeacherForm({ isOpen, onClose, onTeacherAdded, role = 'faculty' }) {
+  const isStaff = role === 'staff';
   const [name, setName] = useState('');
   const [colleges, setColleges] = useState([]);
   const [collegeId, setCollegeId] = useState('');
@@ -143,21 +144,19 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!name.trim()) {
-      setError('Teacher name is required.');
+      setError(`${isStaff ? 'Staff' : 'Teacher'} name is required.`);
       return;
     }
-    if (!collegeId) {
-      setError('Please select a college.');
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
 
     try {
       const formData = new FormData();
       formData.append('name', name.trim());
-      formData.append('college_id', collegeId);
+      formData.append('role', role);
+      if (collegeId) {
+        formData.append('college_id', collegeId);
+      }
       if (department.trim()) {
         formData.append('department', department.trim());
       }
@@ -174,7 +173,7 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
         onTeacherAdded(res.data);
       }
     } catch (err) {
-      setError(err.message || 'Failed to add teacher.');
+      setError(err.message || `Failed to add ${isStaff ? 'staff member' : 'faculty member'}.`);
     } finally {
       setSubmitting(false);
     }
@@ -191,15 +190,21 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
         </button>
 
         <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-8 h-8 rounded-lg bg-bisu-blue-100 dark:bg-bisu-blue-900/60 text-bisu-blue-700 dark:text-bisu-gold flex items-center justify-center">
-            <UserPlus className="w-4 h-4" />
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+            isStaff
+              ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300'
+              : 'bg-bisu-blue-100 dark:bg-bisu-blue-900/60 text-bisu-blue-700 dark:text-bisu-gold'
+          }`}>
+            {isStaff ? <Briefcase className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
           </div>
           <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-            Add New Faculty Member
+            {isStaff ? 'Add New Staff Member' : 'Add New Faculty Member'}
           </h2>
         </div>
         <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-          The teacher will immediately appear in the Faculty Directory with their profile photo stored securely in the database.
+          {isStaff
+            ? 'The staff member will immediately appear in the Directory with their profile photo stored securely in the database.'
+            : 'The teacher will immediately appear in the Faculty Directory with their profile photo stored securely in the database.'}
         </p>
 
         {error && (
@@ -213,19 +218,23 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
           {/* Photo Attachment Section */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Teacher Photo (Stored in Database)
+              {isStaff ? 'Staff Portrait Photo (Stored in Database)' : 'Teacher Photo (Stored in Database)'}
             </label>
 
             {!photoFile && !urlResolvedPreview ? (
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-bisu-gold/70 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-950/40 group"
+                className={`border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-5 text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-950/40 group ${
+                  isStaff ? 'hover:border-teal-500/70' : 'hover:border-bisu-gold/70'
+                }`}
               >
-                <div className="w-12 h-12 rounded-full bg-bisu-gold/10 text-bisu-gold mx-auto flex items-center justify-center mb-2 group-hover:scale-105 transition-transform">
+                <div className={`w-12 h-12 rounded-full mx-auto flex items-center justify-center mb-2 group-hover:scale-105 transition-transform ${
+                  isStaff ? 'bg-teal-500/10 text-teal-600 dark:text-teal-400' : 'bg-bisu-gold/10 text-bisu-gold'
+                }`}>
                   <Camera className="w-6 h-6" />
                 </div>
                 <p className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                  Click to select or drop teacher portrait
+                  Click to select or drop {isStaff ? 'staff' : 'teacher'} portrait
                 </p>
                 <p className="text-[11px] text-slate-400 mt-1">
                   JPG, PNG, or WEBP (up to 10MB)
@@ -285,7 +294,7 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
             <input
               type="text"
               required
-              placeholder="e.g. Dr. Maria Elena Santos"
+              placeholder={isStaff ? 'e.g. Engr. Roberto Cruz, Ms. Carmela Bautista' : 'e.g. Dr. Maria Elena Santos'}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-bisu-gold/50"
@@ -294,17 +303,16 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              College / School *
+              College / Unit (Optional)
             </label>
             <select
-              required
               value={collegeId}
               onChange={(e) => setCollegeId(e.target.value)}
               disabled={loadingColleges}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-bisu-gold/50 cursor-pointer disabled:opacity-60"
             >
               <option value="">
-                {loadingColleges ? 'Loading colleges roster...' : 'Select College / School...'}
+                {loadingColleges ? 'Loading colleges roster...' : 'None / Not Affiliated (Optional)'}
               </option>
               {colleges.map((col) => (
                 <option key={col.id} value={col.id}>
@@ -316,11 +324,15 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              Department (Optional)
+              {isStaff ? 'Department / Office (Optional)' : 'Department (Optional)'}
             </label>
             <input
               type="text"
-              placeholder="e.g. Department of Computer Studies, Secondary Education"
+              placeholder={
+                isStaff
+                  ? 'e.g. Registrar Office, Administrative Services, Accounting'
+                  : 'e.g. Department of Computer Studies, Secondary Education'
+              }
               value={department}
               onChange={(e) => setDepartment(e.target.value)}
               className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-bisu-gold/50"
@@ -374,15 +386,19 @@ export function AddTeacherForm({ isOpen, onClose, onTeacherAdded }) {
             <button
               type="submit"
               disabled={submitting}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white bg-bisu-blue-700 hover:bg-bisu-blue-800 shadow-md transition-all disabled:opacity-50"
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold text-white shadow-md transition-all disabled:opacity-50 ${
+                isStaff
+                  ? 'bg-teal-700 hover:bg-teal-800 shadow-teal-700/20'
+                  : 'bg-bisu-blue-700 hover:bg-bisu-blue-800 shadow-bisu-blue/20'
+              }`}
             >
               {submitting ? (
                 <>
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  <span>Saving Teacher...</span>
+                  <span>{isStaff ? 'Saving Staff...' : 'Saving Faculty...'}</span>
                 </>
               ) : (
-                <span>Add Teacher</span>
+                <span>{isStaff ? 'Add Staff Member' : 'Add Faculty Member'}</span>
               )}
             </button>
           </div>

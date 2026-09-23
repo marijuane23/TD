@@ -5,10 +5,12 @@ import api, { API_BASE_URL, resolveMediaUrl } from '../api/client.js';
 import TimelineEntryList from '../components/TimelineEntryList.jsx';
 import TimelineSubmissionForm from '../components/TimelineSubmissionForm.jsx';
 import EditTeacherPhotoModal from '../components/EditTeacherPhotoModal.jsx';
+import EditTeacherInfoModal from '../components/EditTeacherInfoModal.jsx';
 import KeepsakeExportModal from '../components/KeepsakeExportModal.jsx';
 import {
   ArrowLeft,
   Award,
+  Briefcase,
   Heart,
   MessageSquare,
   Loader2,
@@ -24,6 +26,7 @@ import {
   Check,
   X,
   Sparkles,
+  Pencil,
 } from 'lucide-react';
 
 export function TeacherTimeline() {
@@ -35,6 +38,9 @@ export function TeacherTimeline() {
 
   // Profile picture modal state
   const [isEditPhotoOpen, setIsEditPhotoOpen] = useState(false);
+
+  // Edit Information modal state
+  const [isEditInfoOpen, setIsEditInfoOpen] = useState(false);
 
   // QR Code States
   const [qrDataUrl, setQrDataUrl] = useState('');
@@ -456,10 +462,17 @@ export function TeacherTimeline() {
               <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight break-words">
                 {teacher.name}
               </h1>
-              <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-bisu-gold/20 text-bisu-gold border border-bisu-gold/30 shrink-0">
-                <Award className="w-3.5 h-3.5" />
-                <span>BISU Faculty</span>
-              </span>
+              {teacher.role === 'staff' ? (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30 shrink-0">
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>BISU Staff</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-bisu-gold/20 text-bisu-gold border border-bisu-gold/30 shrink-0">
+                  <Award className="w-3.5 h-3.5" />
+                  <span>BISU Faculty</span>
+                </span>
+              )}
             </div>
 
             <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">
@@ -487,6 +500,15 @@ export function TeacherTimeline() {
               >
                 <Camera className="w-3.5 h-3.5" />
                 <span>{teacher.photo_url ? 'Edit Profile Photo' : 'Attach Profile Photo'}</span>
+              </button>
+              <span>•</span>
+              <button
+                type="button"
+                onClick={() => setIsEditInfoOpen(true)}
+                className="inline-flex items-center gap-1.5 text-bisu-blue-600 dark:text-bisu-gold hover:underline font-bold transition-colors cursor-pointer"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Edit Information</span>
               </button>
               <span>•</span>
               <span className="flex items-center gap-1.5 text-rose-500">
@@ -819,6 +841,26 @@ export function TeacherTimeline() {
         onClose={() => setIsExportModalOpen(false)}
         teacher={teacher}
         messages={messages}
+      />
+
+      {/* Edit Teacher Photo Modal */}
+      <EditTeacherPhotoModal
+        isOpen={isEditPhotoOpen}
+        onClose={() => setIsEditPhotoOpen(false)}
+        teacher={teacher}
+        onPhotoUpdated={(updatedTeacher) => {
+          setTeacher((prev) => ({ ...prev, ...updatedTeacher }));
+        }}
+      />
+
+      {/* Edit Teacher Information Modal */}
+      <EditTeacherInfoModal
+        isOpen={isEditInfoOpen}
+        onClose={() => setIsEditInfoOpen(false)}
+        teacher={teacher}
+        onInfoUpdated={(updatedTeacher) => {
+          setTeacher((prev) => ({ ...prev, ...updatedTeacher }));
+        }}
       />
     </div>
   );

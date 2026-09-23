@@ -15,6 +15,7 @@ import {
   MessageSquare,
   LogOut,
   UserPlus,
+  Briefcase,
   ArrowLeft,
   Trash2,
   ExternalLink,
@@ -43,8 +44,9 @@ export function AdminDashboard() {
   // Active Tab: 'teachers' | 'wall'
   const [activeTab, setActiveTab] = useState('teachers');
 
-  // Teacher Management State
+  // Teacher / Staff Management State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [addModalRole, setAddModalRole] = useState('faculty');
   const [gridRefreshKey, setGridRefreshKey] = useState(0);
   const [teacherToDelete, setTeacherToDelete] = useState(null);
   const [bulkDeletePayload, setBulkDeletePayload] = useState(null);
@@ -353,27 +355,58 @@ export function AdminDashboard() {
               <div className="space-y-6">
                 {!selectedTeacher ? (
                   <>
-                    {/* Faculty Actions Header */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                    {/* Faculty & Staff Actions Header */}
+                    <div className="flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-4">
                       <div>
                         <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                          Faculty Directory Oversight
+                          Faculty & Staff Directory Oversight
                         </h1>
                         <p className="text-xs text-slate-500 mt-0.5">
-                          Manage teachers, bulk import/export rosters, or click any card to inspect and moderate its tributes.
+                          Manage faculty and staff rosters, batch import via Excel, or click any card to inspect and moderate its tributes.
                         </p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2.5">
-                        <button
-                          onClick={() => setIsAddModalOpen(true)}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-white bg-bisu-blue-700 hover:bg-bisu-blue-800 shadow-sm transition-all"
-                        >
-                          <UserPlus className="w-4 h-4" />
-                          <span>Add Teacher</span>
-                        </button>
+                        {/* Faculty Actions Group */}
+                        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+                          <button
+                            onClick={() => {
+                              setAddModalRole('faculty');
+                              setIsAddModalOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-bisu-blue-700 hover:bg-bisu-blue-800 shadow-xs transition-all"
+                            title="Add single faculty member"
+                          >
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>+ Add Faculty</span>
+                          </button>
 
-                        <ImportTeachersButton onImportSuccess={() => setGridRefreshKey(k => k + 1)} />
+                          <ImportTeachersButton
+                            role="faculty"
+                            onImportSuccess={() => setGridRefreshKey(k => k + 1)}
+                          />
+                        </div>
+
+                        {/* Staff Actions Group */}
+                        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-teal-50/70 dark:bg-teal-950/40 border border-teal-200/70 dark:border-teal-900/60 shadow-xs">
+                          <button
+                            onClick={() => {
+                              setAddModalRole('staff');
+                              setIsAddModalOpen(true);
+                            }}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-teal-700 hover:bg-teal-800 shadow-xs transition-all"
+                            title="Add single staff member"
+                          >
+                            <Briefcase className="w-3.5 h-3.5" />
+                            <span>+ Add Staff</span>
+                          </button>
+
+                          <ImportTeachersButton
+                            role="staff"
+                            onImportSuccess={() => setGridRefreshKey(k => k + 1)}
+                          />
+                        </div>
+
                         <ExportTeachersButton />
                       </div>
                     </div>
@@ -581,19 +614,20 @@ export function AdminDashboard() {
               </div>
             )}
 
-            {/* Add Teacher Modal Form */}
+            {/* Add Teacher/Staff Modal Form */}
             <AddTeacherForm
               isOpen={isAddModalOpen}
+              role={addModalRole}
               onClose={() => setIsAddModalOpen(false)}
               onTeacherAdded={() => setGridRefreshKey(k => k + 1)}
             />
 
-            {/* Single Teacher Deletion Confirm Dialog */}
+            {/* Single Teacher/Staff Deletion Confirm Dialog */}
             <ConfirmDialog
               isOpen={!!teacherToDelete}
-              title="Delete Faculty Member?"
+              title={`Delete ${teacherToDelete?.role === 'staff' ? 'Staff Member' : 'Faculty Member'}?`}
               message={`Are you sure you want to permanently delete "${teacherToDelete?.name}"? All associated tributes, messages, and uploaded media will be permanently removed.`}
-              confirmText="Delete Teacher"
+              confirmText={`Delete ${teacherToDelete?.role === 'staff' ? 'Staff' : 'Teacher'}`}
               onConfirm={handleConfirmDeleteTeacher}
               onCancel={() => setTeacherToDelete(null)}
             />
