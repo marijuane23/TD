@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, ShieldAlert, Award, Trash2 } from 'lucide-react';
+import { ArrowRight, ShieldAlert, Award, Briefcase, Trash2 } from 'lucide-react';
 import { resolveMediaUrl } from '../api/client.js';
 
 export function TeacherCard({
@@ -11,10 +11,12 @@ export function TeacherCard({
   isSelected = false,
   onToggleSelect,
 }) {
+  const isStaff = teacher.role === 'staff';
+
   // Generate initials for avatar fallback
   const getInitials = (name = '') => {
     return name
-      .replace(/(Dr\.|Prof\.|Engr\.)/gi, '')
+      .replace(/(Dr\.|Prof\.|Engr\.|Atty\.|Ms\.|Mr\.|Mrs\.)/gi, '')
       .trim()
       .split(/\s+/)
       .map(part => part[0])
@@ -37,7 +39,7 @@ export function TeacherCard({
             onToggleSelect(teacher.id);
           }}
           className="absolute top-3 left-3 z-10 cursor-pointer p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-          title={isSelected ? 'Deselect teacher' : 'Select teacher'}
+          title={isSelected ? `Deselect ${teacher.name}` : `Select ${teacher.name}`}
         >
           <input
             type="checkbox"
@@ -63,39 +65,67 @@ export function TeacherCard({
         </button>
       )}
 
-      {/* Teacher Avatar / Photo */}
-      <div className="relative mb-4 mt-1">
+      {/* Teacher / Staff Avatar / Photo */}
+      <div className="relative mb-3 mt-1">
         {teacher.photo_url ? (
           <img
             src={resolveMediaUrl(teacher.photo_url)}
             alt={teacher.name}
-            className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-bisu-gold shadow-md"
+            className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 shadow-md ${
+              isStaff ? 'border-teal-500' : 'border-bisu-gold'
+            }`}
           />
         ) : (
-          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold flex items-center justify-center text-xl sm:text-2xl font-black border-2 border-bisu-gold/50 shadow-md">
+          <div className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center text-xl sm:text-2xl font-black border-2 shadow-md ${
+            isStaff
+              ? 'bg-gradient-to-br from-teal-800 to-teal-600 text-teal-100 border-teal-400/60'
+              : 'bg-gradient-to-br from-bisu-blue-800 to-bisu-blue-600 text-bisu-gold border-bisu-gold/50'
+          }`}>
             {getInitials(teacher.name)}
           </div>
         )}
-        <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-bisu-gold text-slate-950 flex items-center justify-center shadow">
-          <Award className="w-3.5 h-3.5" />
+
+        {/* Avatar Mini Role Badge */}
+        <div className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center shadow ${
+          isStaff ? 'bg-teal-600 text-white' : 'bg-bisu-gold text-slate-950'
+        }`}>
+          {isStaff ? (
+            <Briefcase className="w-3.5 h-3.5" />
+          ) : (
+            <Award className="w-3.5 h-3.5" />
+          )}
         </div>
       </div>
 
-      {/* Teacher Name */}
+      {/* Name */}
       <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-bisu-blue-600 dark:group-hover:text-bisu-gold transition-colors line-clamp-2 mb-1.5">
         {teacher.name}
       </h3>
 
-      {/* College Badge */}
-      {teacher.college_name && (
-        <span className="inline-block px-2 py-0.5 mb-1.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-bisu-blue-50 dark:bg-bisu-blue-950/60 text-bisu-blue-700 dark:text-bisu-gold border border-bisu-blue-100 dark:border-bisu-blue-900/40">
-          {teacher.college_code ? `${teacher.college_code} • ` : ''}{teacher.college_name}
-        </span>
-      )}
+      {/* Role & College Badges */}
+      <div className="flex flex-wrap items-center justify-center gap-1.5 mb-2">
+        {isStaff ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide uppercase bg-teal-500/15 text-teal-700 dark:text-teal-300 border border-teal-500/30">
+            <Briefcase className="w-2.5 h-2.5 shrink-0" />
+            <span>BISU Staff</span>
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide uppercase bg-bisu-gold/15 text-amber-800 dark:text-bisu-gold border border-bisu-gold/30">
+            <Award className="w-2.5 h-2.5 shrink-0" />
+            <span>BISU Faculty</span>
+          </span>
+        )}
+
+        {teacher.college_name && (
+          <span className="inline-block px-2 py-0.5 rounded-md text-[10px] font-bold tracking-wide uppercase bg-bisu-blue-50 dark:bg-bisu-blue-950/60 text-bisu-blue-700 dark:text-bisu-gold border border-bisu-blue-100 dark:border-bisu-blue-900/40">
+            {teacher.college_code ? `${teacher.college_code} • ` : ''}{teacher.college_name}
+          </span>
+        )}
+      </div>
 
       {/* Department (Optional or fallback) */}
       <p className="text-xs text-slate-500 dark:text-slate-400 font-medium line-clamp-2 mb-4 flex-1">
-        {teacher.department || (teacher.college_name ? '' : 'BISU Bilar Faculty')}
+        {teacher.department || (isStaff ? 'BISU Staff Member' : (teacher.college_name ? '' : 'BISU Faculty Member'))}
       </p>
 
       {/* Action CTA */}

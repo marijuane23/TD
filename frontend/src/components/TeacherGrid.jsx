@@ -129,7 +129,7 @@ export function TeacherGrid({
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by teacher name or department..."
+            placeholder="Search by name, department, or role..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-4 py-2 rounded-xl text-sm border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-bisu-gold/50"
@@ -156,7 +156,8 @@ export function TeacherGrid({
               <option value="CFES">CFES</option>
               <option value="COAS">COAS</option>
               <option value="CADS">CADS</option>
-              <option value="all">All Colleges</option>
+              <option value="none">Staff / Non-affiliated</option>
+              <option value="all">All Colleges & Units</option>
             </select>
           </div>
 
@@ -186,7 +187,7 @@ export function TeacherGrid({
               type="button"
               onClick={handleSelectAll}
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 transition-colors shrink-0"
-              title={isAllSelected ? 'Deselect all faculty on this page' : 'Select all faculty on this page'}
+              title={isAllSelected ? 'Deselect all on this page' : 'Select all on this page'}
             >
               <CheckSquare className={`w-4 h-4 ${isAllSelected ? 'text-bisu-gold' : 'text-slate-400'}`} />
               <span className="hidden sm:inline">{isAllSelected ? 'Deselect All' : 'Select All'}</span>
@@ -203,7 +204,7 @@ export function TeacherGrid({
               {selectedIds.length}
             </span>
             <span className="text-xs sm:text-sm font-bold">
-              {selectedIds.length === 1 ? '1 faculty member selected' : `${selectedIds.length} faculty members selected`}
+              {selectedIds.length === 1 ? '1 member selected' : `${selectedIds.length} members selected`}
             </span>
             <button
               type="button"
