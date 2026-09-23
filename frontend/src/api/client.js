@@ -181,6 +181,16 @@ export const api = {
     return res;
   },
 
+  async updateTeacherInfo(slug, info) {
+    const res = await request(`/teachers/${encodeURIComponent(slug)}`, {
+      method: 'PUT',
+      body: JSON.stringify(info),
+    });
+    // Invalidate teacher caches
+    clearClientCache('teachers:');
+    return res;
+  },
+
   async resolvePhotoPreview(url) {
     return request('/teachers/resolve-preview', {
       method: 'POST',
@@ -308,10 +318,11 @@ export const api = {
     return res;
   },
 
-  async importAdminTeachers(file) {
+  async importAdminTeachers(file, role = 'faculty') {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await request('/admin/teachers/import', {
+    formData.append('role', role);
+    const res = await request(`/admin/teachers/import?role=${encodeURIComponent(role)}`, {
       method: 'POST',
       body: formData,
     });
@@ -328,7 +339,7 @@ export const api = {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `bisu-teachers-${new Date().toISOString().slice(0, 10)}.xlsx`;
+    a.download = `bisu-roster-${new Date().toISOString().slice(0, 10)}.xlsx`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -342,24 +353,30 @@ export const api = {
     return `${API_BASE_URL}/admin/teachers/export?${params.toString()}`;
   },
 
-  async downloadTemplate() {
+  async downloadTemplate(role = 'faculty') {
     const token = getAuthToken();
-    const query = token ? `?token=${encodeURIComponent(token)}` : '';
+    const params = new URLSearchParams();
+    if (token) params.append('token', token);
+    if (role) params.append('role', role);
+    const query = params.toString() ? `?${params.toString()}` : '';
     const res = await request(`/admin/teachers/template${query}`);
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'teacher-import-template.xlsx';
+    a.download = role === 'staff' ? 'staff-import-template.xlsx' : 'faculty-import-template.xlsx';
     document.body.appendChild(a);
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
   },
 
-  getTemplateDownloadUrl() {
+  getTemplateDownloadUrl(role = 'faculty') {
     const token = getAuthToken();
-    return `${API_BASE_URL}/admin/teachers/template${token ? `?token=${encodeURIComponent(token)}` : ''}`;
+    const params = new URLSearchParams();
+    if (token) params.append('token', token);
+    if (role) params.append('role', role);
+    return `${API_BASE_URL}/admin/teachers/template?${params.toString()}`;
   },
 
   async getAdminTeacherMessages(teacherId) {
