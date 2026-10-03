@@ -53,6 +53,7 @@ export function WallCanvas() {
   const isDark = theme === 'dark';
 
   const [greetings, setGreetings] = useState([]);
+  const [realTotalCount, setRealTotalCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [focusedCard, setFocusedCard] = useState(null);
@@ -144,7 +145,7 @@ export function WallCanvas() {
     let isMounted = true;
     const fetchWallGreetings = async () => {
       try {
-        const res = await api.getWallGreetings({ limit: 150 });
+        const res = await api.getWallGreetings({ limit: 200 });
         if (isMounted && res.items) {
           const apiFormatted = res.items.map((item, idx) => ({
             id: item.id || `api-${idx}`,
@@ -158,6 +159,7 @@ export function WallCanvas() {
             created_at: item.created_at || null,
           }));
           setGreetings(apiFormatted);
+          setRealTotalCount(typeof res.totalCount === 'number' ? res.totalCount : apiFormatted.length);
 
           // Preload tribute images in background so they are warm in browser memory
           apiFormatted.forEach(item => {
@@ -191,6 +193,7 @@ export function WallCanvas() {
       created_at: newGreeting.created_at || new Date().toISOString(),
     };
     setGreetings(prev => [formatted, ...prev]);
+    setRealTotalCount(prev => prev + 1);
   };
 
   // Filter greetings if search is active
@@ -549,15 +552,21 @@ export function WallCanvas() {
     }
   };
 
-  // Pick up to 5 random greetings to display in the Spotlight Modal
+  // Pick up to 5 random greetings using unbiased Fisher-Yates (Knuth) algorithm
   const handlePickRandomGreetings = () => {
     if (!greetings || greetings.length === 0) return;
 
+    // Shallow copy to prevent mutating the original array
     const pool = [...greetings];
-    // Random shuffle
-    const shuffled = pool.sort(() => 0.5 - Math.random());
-    const count = Math.min(5, shuffled.length);
-    const picked = shuffled.slice(0, count).map((cardData) => {
+
+    // Unbiased Fisher-Yates shuffle
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [pool[i], pool[j]] = [pool[j], pool[i]];
+    }
+
+    const count = Math.min(5, pool.length);
+    const picked = pool.slice(0, count).map((cardData) => {
       const idx = greetings.findIndex(g => g.id === cardData.id);
       const pal = PALETTE[(idx >= 0 ? idx : 0) % PALETTE.length];
       return { ...cardData, pal };
@@ -589,11 +598,14 @@ export function WallCanvas() {
       {/* Globe Top Toolbar: Count Number Only, Expanding Search Icon, & Zoom Controls */}
       <div className="globe-toolbar">
         <div className="flex items-center gap-2">
-          {/* Pill Counter: Number Only with Globe Icon */}
-          <span className="globe-pill shrink-0" title={`${totalCount} Total Greetings`}>
+          {/* Pill Counter: Real Total Count with Globe Icon */}
+          <span
+            className="globe-pill shrink-0"
+            title={`${realTotalCount} Total Greetings in Community (${filteredGreetings.length} currently in Orbit)`}
+          >
             <Globe className="w-4 h-4 text-bisu-gold shrink-0" />
             <b id="ctext" className="font-extrabold text-sm text-slate-900 dark:text-white leading-none">
-              {totalCount}
+              {searchQuery.trim() ? filteredGreetings.length : realTotalCount}
             </b>
           </span>
 
