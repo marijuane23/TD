@@ -1,6 +1,8 @@
 // Media validation utilities
 
 export const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+export const MIN_VIDEO_SECONDS = 5;
+export const MAX_VIDEO_SECONDS = 120;
 export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export const ALLOWED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime'];
 
@@ -20,12 +22,12 @@ export async function validateMediaFile(file) {
     throw new Error('Unsupported file format. Please upload JPG, PNG, WEBP, MP4, or WEBM.');
   }
 
-  // 2. Video duration check (strictly 20s to 120s)
+  // 2. Video duration check (strictly MIN_VIDEO_SECONDS to MAX_VIDEO_SECONDS)
   if (isVideo) {
     const duration = await getVideoDuration(file);
-    if (duration < 20 || duration > 120) {
+    if (duration < MIN_VIDEO_SECONDS || duration > MAX_VIDEO_SECONDS) {
       throw new Error(
-        `Video must be between 20 and 120 seconds long. Your video is ${Math.round(duration)} seconds.`
+        `Video must be between ${MIN_VIDEO_SECONDS} and ${MAX_VIDEO_SECONDS} seconds long. Your video is ${Math.round(duration)} seconds.`
       );
     }
     return { valid: true, type: 'video', duration };
