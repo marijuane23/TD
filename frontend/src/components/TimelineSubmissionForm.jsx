@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import api from '../api/client.js';
-import { validateMediaFile } from '../utils/mediaValidators.js';
+import { validateMediaFile, MIN_VIDEO_SECONDS, MAX_VIDEO_SECONDS } from '../utils/mediaValidators.js';
 import confetti from 'canvas-confetti';
 import { Send, UploadCloud, X, Film, Image as ImageIcon, AlertCircle, CheckCircle2 } from 'lucide-react';
 
@@ -32,7 +32,7 @@ export function TimelineSubmissionForm({ teacherSlug, teacherName, onMessageAdde
 
     setError(null);
     try {
-      // Validate 50MB and strictly 20s-120s for video
+      // Validate 50MB and strictly MIN_VIDEO_SECONDS-MAX_VIDEO_SECONDS for video
       const validation = await validateMediaFile(selected);
       setFile(selected);
       setFileType(validation.type);
@@ -115,7 +115,7 @@ export function TimelineSubmissionForm({ teacherSlug, teacherName, onMessageAdde
         Post a Tribute for {teacherName}
       </h3>
       <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-        Express your gratitude with a message, photo, or short video clip (20–120s, up to 50MB). Posts appear immediately!
+        Express your gratitude with a message, photo, or short video clip ({MIN_VIDEO_SECONDS}–{MAX_VIDEO_SECONDS}s, up to 50MB). Posts appear immediately!
       </p>
 
       {error && (
@@ -194,7 +194,7 @@ export function TimelineSubmissionForm({ teacherSlug, teacherName, onMessageAdde
                 Click to browse or drop photo / short video
               </p>
               <p className="text-[11px] text-slate-400 mt-1">
-                Images: JPG, PNG, WEBP (up to 50MB) • Videos: MP4, WEBM (20s–120s, up to 50MB)
+                Images: JPG, PNG, WEBP (up to 50MB) • Videos: MP4, WEBM ({MIN_VIDEO_SECONDS}s–{MAX_VIDEO_SECONDS}s, up to 50MB)
               </p>
               <input
                 ref={fileInputRef}
