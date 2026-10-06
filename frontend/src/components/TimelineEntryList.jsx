@@ -15,7 +15,7 @@ export function TimelineEntryList({ messages = [], activeFilter = 'all' }) {
       emptyDesc = 'There are no tributes with attached photos yet. Post one using the form on the left!';
     } else if (activeFilter === 'videos') {
       emptyTitle = 'No video tributes found';
-      emptyDesc = 'There are no tributes with short video clips yet. Post a 20s–120s video tribute!';
+      emptyDesc = 'There are no tributes with short video clips yet. Post a 5s–120s video tribute!';
     } else if (activeFilter === 'messages') {
       emptyTitle = 'No text tributes found';
       emptyDesc = 'There are no text-only tributes yet under this filter.';
